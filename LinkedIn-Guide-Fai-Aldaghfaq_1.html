@@ -1,0 +1,661 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Profile Example Gallery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gelasio:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: top view switch (Guide / Examples) + language toggle; one centered column; teaching notes rail beside sections on wide screens */
+:root{
+  --bg:#f3f4f2; --card:#ffffff; --ink:#1b2321; --muted:#5d6764; --line:#dfe3e1;
+  --accent:#0b5d6b; --accent-soft:#e2f0f1; --note:#fdf6e3; --note-ink:#6b5310; --chip:#eceeed; --warn:#fbeaea; --warn-ink:#8a2424;
+  --bg:#f7f2f6; --b1:#6fd0d4; --b2:#f3a3c4; --b3:#b7a2f2; --b4:#f6cf86; --blobop:.55; --star:rgba(90,60,120,.07);
+  --display:Georgia,"Gelasio","thmanyah serif display","Noto Naskh Arabic",serif;
+  --body:Georgia,"Gelasio","thmanyah serif text","Noto Naskh Arabic",serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121615; --card:#1b201f; --ink:#e7ecea; --muted:#9aa5a1; --line:#2c3331;
+  --accent:#5fc0cc; --accent-soft:#183236; --note:#2a2412; --note-ink:#e8cf86; --chip:#242a29; --warn:#3a1c1c; --warn-ink:#f2b3b3; --bg:#0e1120; --b1:#137a82; --b2:#8a2f5c; --b3:#4b3a9a; --b4:#7a5a1e; --blobop:.45; --star:rgba(200,190,255,.06); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121615; --card:#1b201f; --ink:#e7ecea; --muted:#9aa5a1; --line:#2c3331;
+  --accent:#5fc0cc; --accent-soft:#183236; --note:#2a2412; --note-ink:#e8cf86; --chip:#242a29; --warn:#3a1c1c; --warn-ink:#f2b3b3; --bg:#0e1120; --b1:#137a82; --b2:#8a2f5c; --b3:#4b3a9a; --b4:#7a5a1e; --blobop:.45; --star:rgba(200,190,255,.06); color-scheme:dark}
+@font-face{font-family:"Thmanyah Text";src:local("thmanyah serif text"),local("thmanyahseriftext-Regular");font-weight:400;font-display:swap}
+@font-face{font-family:"Thmanyah Text";src:local("thmanyah serif text Medium"),local("thmanyahseriftext-Medium");font-weight:500 600;font-display:swap}
+@font-face{font-family:"Thmanyah Text";src:local("thmanyah serif text Bold"),local("thmanyahseriftext-Bold");font-weight:700 900;font-display:swap}
+@font-face{font-family:"Thmanyah Display";src:local("thmanyah serif display Bold"),local("thmanyahserifdisplay-Bold");font-weight:400 900;font-display:swap}
+:root:lang(ar){--display:"Thmanyah Display","thmanyah serif display","Noto Naskh Arabic",Georgia,serif;--body:"Thmanyah Text","thmanyah serif text","Noto Naskh Arabic",Georgia,serif}
+*{box-sizing:border-box}
+body{background-color:var(--bg);min-height:100%;color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+:lang(ar) body{font-size:16px;line-height:1.8}
+.wrap{max-width:1000px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.views{display:flex;gap:4px;background:var(--card);border:1px solid var(--line);padding:4px;border-radius:10px}
+.vbtn,.lang,.toggle,.chip,.go{font:inherit;cursor:pointer}
+.vbtn{font-size:14px;font-weight:600;border:0;background:none;color:var(--muted);padding:8px 14px;border-radius:7px}
+.vbtn[aria-pressed="true"]{background:var(--card);color:var(--ink)}
+.lang{font-size:14px;font-weight:600;border:1px solid var(--accent);color:var(--accent);background:var(--card);padding:8px 14px;border-radius:8px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(26px,5vw,36px);line-height:1.15;margin:0;text-wrap:balance}
+.lede{color:var(--muted);margin:6px 0 0;max-width:64ch}
+.bgfx{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.bgfx i{position:absolute;width:46vmax;height:46vmax;border-radius:50%;filter:blur(70px);opacity:var(--blobop)}
+.bgfx i:nth-child(1){background:var(--b1);top:-14vmax;left:-10vmax;animation:f1 22s ease-in-out infinite alternate}
+.bgfx i:nth-child(2){background:var(--b2);top:-8vmax;right:-14vmax;animation:f2 26s ease-in-out infinite alternate}
+.bgfx i:nth-child(3){background:var(--b3);bottom:-18vmax;left:10vmax;animation:f3 30s ease-in-out infinite alternate}
+.bgfx i:nth-child(4){background:var(--b4);bottom:-10vmax;right:-6vmax;width:30vmax;height:30vmax;animation:f1 24s ease-in-out infinite alternate-reverse}
+.bgfx::after{content:"";position:absolute;inset:0;background-color:var(--star);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='black' stroke-width='1.4'%3E%3Crect x='22' y='22' width='28' height='28'/%3E%3Crect x='22' y='22' width='28' height='28' transform='rotate(45 36 36)'/%3E%3Ccircle cx='36' cy='36' r='5'/%3E%3Cpath d='M0 36h8M64 36h8M36 0v8M36 64v8'/%3E%3C/g%3E%3C/svg%3E") 0 0/72px 72px;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='black' stroke-width='1.4'%3E%3Crect x='22' y='22' width='28' height='28'/%3E%3Crect x='22' y='22' width='28' height='28' transform='rotate(45 36 36)'/%3E%3Ccircle cx='36' cy='36' r='5'/%3E%3Cpath d='M0 36h8M64 36h8M36 0v8M36 64v8'/%3E%3C/g%3E%3C/svg%3E") 0 0/72px 72px}
+@keyframes f1{to{transform:translate(12vmax,8vmax) scale(1.15)}}
+@keyframes f2{to{transform:translate(-10vmax,12vmax) scale(.9)}}
+@keyframes f3{to{transform:translate(8vmax,-10vmax) scale(1.2)}}
+@media (prefers-reduced-motion:reduce){.bgfx i{animation:none}}
+.hero{position:relative;overflow:hidden;display:flex;gap:16px;align-items:flex-start;color:#fff;border-radius:20px;padding:30px 26px;background:linear-gradient(130deg,#0b5560 0%,#2f3f86 48%,#8b3a73 100%);box-shadow:0 18px 40px -18px rgba(47,40,110,.55)}
+.hero::before{content:"";position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='white' stroke-opacity='.14' stroke-width='1.2'%3E%3Crect x='22' y='22' width='28' height='28'/%3E%3Crect x='22' y='22' width='28' height='28' transform='rotate(45 36 36)'/%3E%3Ccircle cx='36' cy='36' r='5'/%3E%3Cpath d='M0 36h8M64 36h8M36 0v8M36 64v8'/%3E%3C/g%3E%3C/svg%3E") 0 0/72px 72px;pointer-events:none}
+.hero::after{content:"";position:absolute;width:260px;height:260px;border-radius:50%;background:#f6cf86;opacity:.28;filter:blur(50px);top:-90px;inset-inline-end:-60px;pointer-events:none}
+.hero>*{position:relative;z-index:1}
+.hero .lede{color:rgba(255,255,255,.86)}
+.kicker{flex:0 0 52px;height:52px;border-radius:12px;background:#fff;color:#0b5560;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:24px}
+@media (max-width:480px){.kicker{display:none}}
+.card{box-shadow:0 1px 2px rgba(0,0,0,.08),0 14px 30px -18px rgba(0,0,0,.55);border-color:var(--line)}
+:root{--navy:#f7f5ef;--navy2:#fffaf0;--gold:#c99a3e;--gold-soft:#8a6a2a;--accent:#8f6a1f;--accent-soft:#f7eedb;--herobg:linear-gradient(160deg,#ffffff,#fbf6ea);--heroink:#13254a;--herolede:#55607a;--glowA:rgba(201,154,62,.16);--glowB:rgba(120,150,210,.14)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--navy:#08101f;--navy2:#0f1d38;--card:#13203a;--line:#26365a;--chip:#1c2a48;--ink:#eef1f7;--muted:#a6b0c4;--accent:#e2bd6b;--accent-soft:#2c2817;--note:#2a2516;--note-ink:#ecd497;--gold-soft:#f1dca8;--herobg:linear-gradient(160deg,#132648,#0a1428);--heroink:#fff;--herolede:#d9deea;--glowA:rgba(212,173,92,.10);--glowB:rgba(60,90,160,.18)}}
+:root[data-theme="dark"]{--navy:#08101f;--navy2:#0f1d38;--card:#13203a;--line:#26365a;--chip:#1c2a48;--ink:#eef1f7;--muted:#a6b0c4;--accent:#e2bd6b;--accent-soft:#2c2817;--note:#2a2516;--note-ink:#ecd497;--gold-soft:#f1dca8;--herobg:linear-gradient(160deg,#132648,#0a1428);--heroink:#fff;--herolede:#d9deea;--glowA:rgba(212,173,92,.10);--glowB:rgba(60,90,160,.18)}
+body{background-color:var(--navy);background-image:radial-gradient(60rem 30rem at 85% -6rem,var(--glowA),transparent 70%),radial-gradient(50rem 30rem at 0% 20rem,var(--glowB),transparent 70%),linear-gradient(var(--gold),var(--gold));background-size:auto,auto,100% 3px;background-repeat:no-repeat;background-position:0 0,0 0,0 0}
+.bgfx{display:none}
+.hero{background:var(--herobg);color:var(--heroink);border:1px solid rgba(201,154,62,.55);box-shadow:0 20px 40px -24px rgba(19,37,74,.35)}
+.hero::before{background:none;border:1px solid rgba(212,173,92,.25);inset:8px;border-radius:14px}
+.hero::after{background:var(--gold);opacity:.16;filter:blur(60px)}
+.hero h1{color:var(--heroink)}
+.hero h1::after{content:"";display:block;width:64px;height:3px;background:var(--gold);border-radius:2px;margin-top:12px}
+.hero .lede{color:var(--herolede)}
+.credit{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:14px 0 0;font-size:14px;font-weight:600;color:var(--accent);font-family:Georgia,"Gelasio",serif}
+.credit [lang="ar"]{font-family:"Thmanyah Text","thmanyah serif text","Noto Naskh Arabic",serif}
+.pagefoot [dir="rtl"]{font-family:"Thmanyah Text","thmanyah serif text","Noto Naskh Arabic",serif}
+.credit .sep{color:var(--gold)}
+.pagefoot{text-align:center;font-size:13px;color:var(--gold-soft);padding-top:8px}
+.card{box-shadow:0 1px 2px rgba(19,37,74,.05),0 12px 28px -18px rgba(19,37,74,.25)}
+.kicker{background:linear-gradient(145deg,#e9c97d,#b98a33);color:#0d1a33}
+.chip[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:#0d1a33}
+.vbtn[aria-pressed="true"]{background:var(--gold);color:#0d1a33}
+.lang{border-color:var(--gold);color:#0d1a33;background:var(--gold)}
+.foot{color:var(--gold-soft)}
+.toggle{color:var(--gold-soft);border-color:rgba(212,173,92,.5)}
+.go{background:var(--gold);color:#0d1a33}
+.num{background:var(--accent-soft);color:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--navy);padding-block:10px;margin-inline:-4px;padding-inline:4px}
+[hidden]{display:none!important}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--navy)}
+@media (max-width:760px){.chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}.chips::-webkit-scrollbar{display:none}.chip{flex:0 0 auto}}
+#profile{scroll-margin-top:80px}
+.chip{font-size:14px;font-weight:500;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--card)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.toggle{font-size:13px;color:var(--muted);background:none;border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+.row{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:16px;align-items:start}
+.row.nonote{grid-template-columns:minmax(0,1fr)}
+body.hide-notes .note{display:none}
+body.hide-notes .row{grid-template-columns:minmax(0,1fr)}
+@media (max-width:760px){.row{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px;min-width:0}
+.note{background:var(--note);color:var(--note-ink);border-radius:8px;padding:12px 14px;font-size:13.5px;line-height:1.55}
+.note b{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+:lang(ar) .note b{letter-spacing:0;font-size:13px}
+.top{padding:0;overflow:hidden}
+.banner{height:96px}
+.top .in{padding:0 20px 18px}
+.avatar{width:96px;height:96px;border-radius:50%;border:4px solid var(--card);margin-top:-48px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:30px;font-weight:700;color:#fff}
+.name{font-family:var(--display);font-size:24px;font-weight:700;margin:8px 0 2px}
+.headline{margin:0 0 6px}
+.meta{color:var(--muted);font-size:13.5px;margin:0}
+.otw{display:inline-block;margin-top:10px;font-size:13px;background:var(--accent-soft);color:var(--accent);padding:6px 10px;border-radius:8px}
+h2{font-family:var(--display);font-size:19px;font-weight:700;margin:0 0 12px;text-wrap:balance}
+.item{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.item:first-of-type{border-top:0;padding-top:0}
+.logo{flex:0 0 44px;height:44px;border-radius:6px;background:var(--chip);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:20px}
+.item h3{font-size:15px;font-weight:600;margin:0}
+.item p{margin:0}
+.sub{color:var(--muted);font-size:13.5px}
+ul.b,ol.b{margin:6px 0 0;padding-inline-start:20px;padding-inline-end:0}
+ul.b li,ol.b li{margin:4px 0}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:13px;background:var(--chip);padding:5px 10px;border-radius:6px}
+.feat{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.fbox{border:1px solid var(--line);border-radius:8px;padding:12px}
+.fbox p{margin:0}
+.rec{font-style:italic;margin:0}
+:lang(ar) .rec{font-style:normal}
+.check{columns:2 280px;column-gap:28px;margin:0;padding-inline-start:20px}
+.check li{margin:6px 0;break-inside:avoid}
+.foot{color:var(--muted);font-size:13px}
+.step{display:grid;grid-template-columns:40px minmax(0,1fr);gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.step:first-of-type{border-top:0;padding-top:0}
+.num{width:32px;height:32px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-variant-numeric:tabular-nums}
+.step h3{margin:4px 0 2px;font-size:15.5px;font-weight:600}
+.step p{margin:0;color:var(--muted)}
+.gsec p{margin:0 0 10px;max-width:70ch}
+.gsec p:last-child{margin-bottom:0}
+.box{background:var(--chip);border-radius:8px;padding:12px 14px;font-size:14px;white-space:pre-line;margin-top:8px}
+.warn{background:var(--warn);color:var(--warn-ink)}
+.toc{display:flex;flex-wrap:wrap;gap:6px}
+.toc a{font-size:13px;color:var(--accent);text-decoration:none;background:var(--accent-soft);padding:5px 10px;border-radius:6px}
+.go{font-size:15px;font-weight:600;background:var(--accent);color:var(--card);border:0;border-radius:8px;padding:10px 16px;align-self:flex-start}
+.weeks{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.wk{border:1px solid var(--line);border-radius:8px;padding:12px}
+.wk b{display:block;color:var(--accent);margin-bottom:4px}
+:root:lang(en) h1,:root:lang(en) h2,:root:lang(en) .name{font-family:Georgia,"Gelasio",serif;font-weight:700;letter-spacing:-.01em}
+.credit [lang="en"],.pagefoot [dir="ltr"]{font-family:Georgia,"Gelasio",serif;font-style:italic}
+</style>
+</head>
+<body style="margin:0">
+
+<div class="wrap">
+  <div class="topbar">
+    <div class="views" role="group" id="views">
+      <button class="vbtn" type="button" data-v="guide" id="vGuide"></button>
+      <button class="vbtn" type="button" data-v="examples" id="vEx"></button>
+    </div>
+    <button class="lang" type="button" id="langBtn"></button>
+  </div>
+  <nav class="chips" id="chips" hidden></nav>
+  <header class="hero"><span class="kicker" aria-hidden="true">in</span><div style="min-width:0"><h1 id="h1"></h1><p class="lede" id="lede"></p><p class="credit"><span lang="en" dir="ltr">Made by T. Fai Aldaghfaq</span><span class="sep" aria-hidden="true">·</span><span lang="ar" dir="rtl">إعداد أ. فيّ الدغفق</span></p></div></header>
+  <div id="guideView" class="wrap" style="gap:14px"></div>
+  <div id="exView" class="wrap" style="gap:14px" hidden>
+    <div class="bar"><span class="foot" id="count"></span><button class="toggle" id="toggleNotes" type="button"></button></div>
+    <main id="profile" class="wrap" style="gap:14px"></main>
+    <section class="card"><h2 id="ckH"></h2><ul class="check" id="ckL"></ul></section>
+  </div>
+  <footer class="pagefoot"><span dir="ltr">Made by T. Fai Aldaghfaq</span> · <span dir="rtl">إعداد أ. فيّ الدغفق</span></footer>
+</div>
+
+<script>
+const UI={
+en:{guide:"Start here: LinkedIn guide",ex:"Profile examples",lang:"العربية",h1g:"LinkedIn, explained from zero",ledeg:"What LinkedIn is, how it works, and how to create a strong account step by step. Read this first, then open the profile examples.",h1e:"LinkedIn profile examples by career",ledee:"Fourteen complete sample profiles. The yellow notes explain why each section works. All people and companies are fictional.",hide:"Hide teaching notes",show:"Show teaching notes",why:"Why it works",showing:(i,n,l)=>`Showing ${i} of ${n}: ${l}`,
+s:{about:"About",featured:"Featured",exp:"Experience",edu:"Education",certs:"Licenses and certifications",courses:"Courses",skills:"Skills",vol:"Volunteering",langs:"Languages",honors:"Honors and awards",rec:"Recommendation"},
+ckH:"Checklist for every profile",goEx:"See the profile examples",contents:"On this page",
+ck:["Clear face photo, plain background, good light","Banner image that matches the field","Headline: role + specialty + one tool or result","About: 3 short paragraphs, who you are, what you do well, what you want next","Each job: 3 to 5 bullets starting with a verb, at least one number","Education with GPA or honors if strong","Licenses with the issuing body and date (SCFHS, SCE, SOCPA)","Courses: only ones relevant to the target job","5 to 10 skills, top 3 pinned","Volunteering counts, especially for students","Languages with real level","Ask 2 managers or professors for recommendations","Custom URL like linkedin.com/in/firstname-lastname","Never list a job, title or certificate that isn't real"]},
+ar:{guide:"ابدئي هنا: دليل لينكدإن",ex:"أمثلة الحسابات",lang:"English",h1g:"لينكدإن من الصفر",ledeg:"ما هو لينكدإن، وكيف يعمل، وكيف تنشئين حساباً قوياً خطوة بخطوة. اقرئي هذا الدليل أولاً، ثم افتحي أمثلة الحسابات.",h1e:"أمثلة حسابات لينكدإن حسب المهنة",ledee:"أربعة عشر حساباً نموذجياً كاملاً. الملاحظات الصفراء تشرح لماذا كل قسم قوي. جميع الأشخاص والشركات خيالية.",hide:"إخفاء الملاحظات التعليمية",show:"إظهار الملاحظات التعليمية",why:"لماذا هذا جيد",showing:(i,n,l)=>`المثال ${i} من ${n}: ${l}`,
+s:{about:"نبذة",featured:"أعمال مميزة",exp:"الخبرات",edu:"التعليم",certs:"الرخص والشهادات",courses:"الدورات",skills:"المهارات",vol:"العمل التطوعي",langs:"اللغات",honors:"الجوائز والتكريم",rec:"توصية"},
+ckH:"قائمة مراجعة لكل حساب",goEx:"شاهدي أمثلة الحسابات",contents:"محتوى الصفحة",
+ck:["صورة واضحة للوجه بخلفية بسيطة وإضاءة جيدة","صورة غلاف تناسب مجالك","العنوان: المسمى + التخصص + أداة أو إنجاز","النبذة: 3 فقرات قصيرة، من أنتِ، بماذا تتميزين، ماذا تريدين بعد ذلك","لكل وظيفة: 3 إلى 5 نقاط تبدأ بفعل، وفيها رقم واحد على الأقل","التعليم مع المعدل أو مرتبة الشرف إن كانت قوية","الرخص مع الجهة المانحة والتاريخ (الهيئة السعودية للتخصصات الصحية، هيئة المهندسين، سوكبا)","الدورات: فقط ما يتعلق بالوظيفة المستهدفة","من 5 إلى 10 مهارات، وثبّتي أهم 3","العمل التطوعي مهم، خاصة للطالبات","اللغات بمستواها الحقيقي","اطلبي توصيتين من مدير أو أستاذة","رابط مخصص مثل linkedin.com/in/firstname-lastname","لا تكتبي أبداً وظيفة أو مسمى أو شهادة غير حقيقية"]}
+};
+
+const G={
+en:[
+{id:"what",t:"What is LinkedIn?",p:["LinkedIn is a social network for work. Instead of sharing personal photos, people share their education, jobs, skills and achievements. It has over a billion members worldwide, and many Saudi companies, hospitals, banks and government entities post jobs and search for candidates there.","Think of your profile as an online CV that is always open. Recruiters search LinkedIn by job title, skill, city and university, and if your profile uses the right words, they can find you even when you did not apply."]},
+{id:"why",t:"Why should you have an account?",list:["Recruiters can find you for jobs you did not know existed","You can apply to thousands of jobs, many with one click (Easy Apply)","You build a network of classmates, teachers and professionals in your field","You learn from experts' posts and follow the companies you dream of joining","Your certificates and projects are visible in one place"]},
+{id:"rules",t:"Rules before you start",list:["You must be at least 16 years old","Use your real name, the same as on your certificates","Everything on your profile must be true: real jobs, real studies, real certificates","One person, one account","Use a professional email, like firstname.lastname@gmail.com"],warn:"Never invent a company, job title or certificate. LinkedIn removes fake information, and employers check references. Being honest is what makes a profile trusted."},
+{id:"create",t:"Create your account, step by step",steps:[["Download the app or go to linkedin.com","On the website, click Join now."],["Enter your email and a strong password","Use an email you will keep for years."],["Write your first and last name","Choose whether to write it in English, Arabic, or add both later."],["Add your location","Your city, for example Riyadh, so local recruiters find you."],["Add your current status","Your recent job title, or choose \"I'm a student\" and add your university."],["Verify your email","Open the code LinkedIn sends you and enter it."],["Add a profile photo","Profiles with photos get many more views."],["Skip or accept suggestions","LinkedIn will suggest people to connect with. You can do this later."]]},
+{id:"build",t:"Build your profile in this order",steps:[["Photo and banner","A clear photo of your face. The banner can be a simple image related to your field."],["Headline","Up to 220 characters. Write your role, specialty, and a key skill. See the examples page."],["About","3 short paragraphs: who you are, what you are good at, what you want next."],["Experience","Jobs, internships, part-time work, volunteering. Use bullets with verbs and numbers."],["Education","University, degree, years, GPA if strong, graduation project."],["Licenses and certifications","Professional licenses and online certificates, with the issuer and date."],["Skills","Add 5 to 10 and pin the top 3."],["Custom URL","In Edit public profile, change your link to linkedin.com/in/your-name."],["Open to Work","Tell recruiters which roles you want. You can make it visible only to recruiters."]]},
+{id:"how",t:"How LinkedIn works",defs:[["Connections","People you are linked with. 1st degree are direct connections, 2nd degree are their connections, 3rd degree are one step further. More good connections means more people see you."],["Follow","You can follow a person or company to see their posts without connecting."],["Feed","The home page where you see posts from your network."],["Posts, reactions and comments","Share what you learned, a project, or a certificate. Thoughtful comments on others' posts also make you visible."],["Jobs","Search by title and city, save jobs, and turn on job alerts so LinkedIn emails you new jobs."],["Easy Apply","Apply with your LinkedIn profile in one click. Make sure your profile is complete first."],["Messaging","Send messages to your connections. Keep them short and polite."],["Endorsements and recommendations","Others can confirm your skills or write a recommendation about working with you."],["LinkedIn Learning","Video courses. Some are free, and completed courses can be added to your profile."]]},
+{id:"plan",t:"Your first 30 days",weeks:[["Week 1","Complete every section of your profile using the examples."],["Week 2","Connect with 30 to 50 people: classmates, teachers, family friends who work in your field."],["Week 3","Follow 20 companies you would like to work for. Turn on job alerts."],["Week 4","Write your first post (a course you finished or a project) and apply to 5 jobs."]]},
+{id:"msg",t:"How to send a connection request",p:["Always add a short note when connecting with someone you don't know well. Example:"],box:"Hello Ms. Hessa,\nI'm a civil engineering student at King Abdulaziz University and I admired your work on infrastructure projects. I'd be glad to connect and learn from your experience.\nThank you,\nSara"},
+{id:"safe",t:"Stay safe",list:["Never share your national ID, passport, bank details or home address","Real employers never ask you to pay money for a job or training","Be careful with messages that promise high salaries for little work","In Settings, choose who can see your connections and contact details","Report and block anyone who makes you uncomfortable"]},
+{id:"saudi",t:"Useful Saudi resources",list:["Jadarat: the national jobs platform","Doroob: free online training by HRDF, with certificates","Tamheer: on-the-job training program for graduates","Tuwaiq Academy and SDAIA Academy: tech and data courses","Misk Foundation: youth programs and internships"],p2:"Add any certificates you earn from these programs to your LinkedIn profile."}
+],
+ar:[
+{id:"what",t:"ما هو لينكدإن؟",p:["لينكدإن شبكة تواصل اجتماعي للعمل والمهنة. بدلاً من مشاركة الصور الشخصية، يشارك الناس تعليمهم ووظائفهم ومهاراتهم وإنجازاتهم. يضم أكثر من مليار عضو حول العالم، وكثير من الشركات والمستشفيات والبنوك والجهات الحكومية في السعودية تنشر وظائفها وتبحث عن المرشحين فيه.","اعتبري حسابك سيرة ذاتية إلكترونية مفتوحة دائماً. مسؤولو التوظيف يبحثون في لينكدإن بالمسمى الوظيفي والمهارة والمدينة والجامعة، وإذا كان حسابك يحتوي الكلمات الصحيحة سيجدونك حتى لو لم تتقدمي."]},
+{id:"why",t:"لماذا تحتاجين حساباً؟",list:["يجدك مسؤولو التوظيف لوظائف لم تكوني تعرفين عنها","تتقدمين لآلاف الوظائف، وكثير منها بضغطة واحدة (التقديم السهل)","تبنين شبكة من زميلاتك وأساتذتك والمختصين في مجالك","تتعلمين من منشورات الخبراء وتتابعين الشركات التي تحلمين بالعمل فيها","تظهر شهاداتك ومشاريعك في مكان واحد"]},
+{id:"rules",t:"قواعد قبل البدء",list:["يجب ألا يقل عمرك عن 16 سنة","استخدمي اسمك الحقيقي كما في شهاداتك","كل ما في حسابك يجب أن يكون صحيحاً: وظائف حقيقية، دراسة حقيقية، شهادات حقيقية","لكل شخص حساب واحد فقط","استخدمي بريداً إلكترونياً مهنياً مثل firstname.lastname@gmail.com"],warn:"لا تخترعي أبداً شركة أو مسمى وظيفياً أو شهادة. لينكدإن يحذف المعلومات المزيفة، وأصحاب العمل يتحققون من المراجع. الصدق هو ما يجعل الحساب موثوقاً."},
+{id:"create",t:"إنشاء الحساب خطوة بخطوة",steps:[["حمّلي التطبيق أو ادخلي موقع linkedin.com","في الموقع اضغطي على Join now (انضم الآن)."],["اكتبي بريدك الإلكتروني وكلمة مرور قوية","استخدمي بريداً ستحتفظين به لسنوات."],["اكتبي اسمك الأول والأخير","اختاري كتابته بالإنجليزية أو العربية، ويمكنك إضافة اللغة الأخرى لاحقاً."],["أضيفي موقعك","مدينتك، مثل الرياض، حتى يجدك مسؤولو التوظيف في منطقتك."],["أضيفي وضعك الحالي","آخر مسمى وظيفي لك، أو اختاري \"أنا طالبة\" وأضيفي جامعتك."],["أكّدي بريدك الإلكتروني","افتحي الرمز الذي يرسله لينكدإن واكتبيه."],["أضيفي صورة شخصية","الحسابات التي فيها صورة تحصل على مشاهدات أكثر بكثير."],["تخطّي الاقتراحات أو اقبليها","سيقترح لينكدإن أشخاصاً للتواصل معهم، ويمكنك فعل ذلك لاحقاً."]]},
+{id:"build",t:"ابني حسابك بهذا الترتيب",steps:[["الصورة والغلاف","صورة واضحة لوجهك. الغلاف يمكن أن يكون صورة بسيطة تتعلق بمجالك."],["العنوان (Headline)","حتى 220 حرفاً. اكتبي مسماك وتخصصك ومهارة أساسية. انظري صفحة الأمثلة."],["النبذة (About)","3 فقرات قصيرة: من أنتِ، بماذا تتميزين، وماذا تريدين بعد ذلك."],["الخبرات (Experience)","الوظائف، التدريب التعاوني، العمل الجزئي، التطوع. اكتبي نقاطاً تبدأ بفعل وفيها أرقام."],["التعليم (Education)","الجامعة، التخصص، السنوات، المعدل إن كان قوياً، ومشروع التخرج."],["الرخص والشهادات","الرخص المهنية والشهادات الإلكترونية مع الجهة المانحة والتاريخ."],["المهارات (Skills)","أضيفي من 5 إلى 10 مهارات وثبّتي أهم 3."],["الرابط المخصص","من Edit public profile غيّري رابطك إلى linkedin.com/in/your-name."],["متاحة للعمل (Open to Work)","أخبري مسؤولي التوظيف بالوظائف التي تريدينها، ويمكن جعلها ظاهرة لهم فقط."]]},
+{id:"how",t:"كيف يعمل لينكدإن",defs:[["العلاقات (Connections)","الأشخاص المرتبطون بك. الدرجة الأولى تواصل مباشر، والثانية معارفهم، والثالثة أبعد بخطوة. كلما زادت علاقاتك الجيدة زاد عدد من يراك."],["المتابعة (Follow)","يمكنك متابعة شخص أو شركة لرؤية منشوراتهم دون إضافة."],["الصفحة الرئيسية (Feed)","حيث ترين منشورات شبكتك."],["المنشورات والتفاعل والتعليقات","شاركي ما تعلمتِه أو مشروعاً أو شهادة. التعليقات المفيدة على منشورات الآخرين تجعلك ظاهرة أيضاً."],["الوظائف (Jobs)","ابحثي بالمسمى والمدينة، واحفظي الوظائف، وفعّلي تنبيهات الوظائف ليرسل لك لينكدإن الجديد."],["التقديم السهل (Easy Apply)","تقدّمي بحسابك بضغطة واحدة. تأكدي أولاً أن حسابك مكتمل."],["الرسائل (Messaging)","أرسلي رسائل لعلاقاتك، واجعليها قصيرة ومهذبة."],["التأييدات والتوصيات","يمكن للآخرين تأكيد مهاراتك أو كتابة توصية عن العمل معك."],["لينكدإن للتعلم (LinkedIn Learning)","دورات بالفيديو، بعضها مجاني، ويمكن إضافة الدورات المكتملة إلى حسابك."]]},
+{id:"plan",t:"خطتك في أول 30 يوماً",weeks:[["الأسبوع 1","أكملي كل أقسام حسابك مستعينة بالأمثلة."],["الأسبوع 2","تواصلي مع 30 إلى 50 شخصاً: زميلاتك، أساتذتك، معارف العائلة العاملين في مجالك."],["الأسبوع 3","تابعي 20 شركة تتمنين العمل فيها، وفعّلي تنبيهات الوظائف."],["الأسبوع 4","اكتبي أول منشور لك (دورة أنهيتِها أو مشروع) وتقدّمي لـ 5 وظائف."]]},
+{id:"msg",t:"كيف ترسلين طلب تواصل",p:["أضيفي دائماً رسالة قصيرة عند التواصل مع شخص لا تعرفينه جيداً. مثال:"],box:"مرحباً أستاذة حصة،\nأنا طالبة هندسة مدنية في جامعة الملك عبدالعزيز، وأعجبني عملك في مشاريع البنية التحتية. يسعدني التواصل معك والتعلم من خبرتك.\nشكراً لك،\nسارة"},
+{id:"safe",t:"حافظي على أمانك",list:["لا تشاركي أبداً الهوية الوطنية أو الجواز أو بياناتك البنكية أو عنوان منزلك","صاحب العمل الحقيقي لا يطلب منك دفع مال مقابل وظيفة أو تدريب","احذري من الرسائل التي تعد برواتب عالية مقابل عمل قليل","من الإعدادات اختاري من يرى علاقاتك ومعلومات التواصل","أبلغي عن أي شخص يزعجك واحظريه"]},
+{id:"saudi",t:"مصادر سعودية مفيدة",list:["جدارات: المنصة الوطنية للتوظيف","دروب: تدريب إلكتروني مجاني من صندوق تنمية الموارد البشرية (هدف) مع شهادات","تمهير: برنامج تدريب على رأس العمل للخريجين","أكاديمية طويق وأكاديمية سدايا: دورات في التقنية والبيانات","مؤسسة مسك: برامج وتدريب للشباب"],p2:"أضيفي أي شهادة تحصلين عليها من هذه البرامج إلى حسابك في لينكدإن."}
+]};
+
+const P=[
+{id:"software",color:"#2f5d9e",ini:["LD","لد"],
+en:{label:"Software engineer",name:"Lama Al-Dosari",headline:"Software Engineer | Backend (Python, Django) | Building payment APIs used by 200K+ users",loc:"Riyadh, Saudi Arabia",conn:"500+ connections",otw:"Open to: Senior Backend Engineer roles",
+about:["Backend engineer with 3 years of experience building secure, high-traffic APIs for fintech products.","At my current company I lead the payments service, which processes over 40,000 transactions a day. I care about clean code, good tests, and clear documentation.","Currently learning: Kubernetes and system design at scale."],
+featured:[["GitHub: expense-tracker","Open-source budgeting app, 120 stars"],["Article: How we cut API latency by 45%","Written for the company tech blog"]],
+exp:[["Software Engineer","Wadi Pay (fintech) · Full-time","Jan 2024 – Present","Riyadh · Hybrid",["Lead developer of the payments API (Python, Django, PostgreSQL) serving 200K+ users","Reduced average response time from 420ms to 230ms with Redis caching","Raised test coverage from 48% to 85% and set up automated CI","Mentor 2 junior developers through weekly code reviews"]],["Junior Software Developer","Najd Digital Solutions · Full-time","Jul 2022 – Dec 2023","Riyadh",["Built 14 REST endpoints for an e-government booking portal","Fixed 60+ production bugs in the first six months"]],["Software Engineering Intern","Gulf Logistics Co. · Internship","Jun 2021 – Aug 2021","Dammam",["Built an internal React dashboard that replaced a manual Excel report"]]],
+edu:[["King Saud University","Bachelor of Science, Computer Science","2018 – 2022","GPA 4.6/5 · Second honors · Graduation project: Arabic chatbot for university services"]],
+certs:[["AWS Certified Solutions Architect – Associate","Amazon Web Services","Issued Mar 2025"],["AWS Certified Cloud Practitioner","Amazon Web Services","Issued Jan 2024"],["Professional Scrum Master I (PSM I)","Scrum.org","Issued Sep 2023"]],
+courses:["Data Structures and Algorithms (Coursera, UC San Diego)","Docker and Kubernetes: The Complete Guide (Udemy)","Secure Coding Practices (Tuwaiq Academy)"],
+skills:["Python","Django","PostgreSQL","REST APIs","Redis","Docker","Git","AWS","System design","Unit testing"],
+vol:[["Coding Instructor","Women Who Code Riyadh","2023 – Present","Teach monthly Python workshops to 30+ beginners"]],
+langs:["Arabic – Native","English – Full professional"],honors:["1st place, Tuwaiq Hackathon 2021 (team of 4)"],
+rec:["Lama took ownership of our most critical service within months. Her code is the standard the rest of the team follows.","Engineering Manager, Wadi Pay"],
+notes:{top:"The headline names the role, the tech stack and a result with a number. Recruiters search by these exact words.",about:"Three short paragraphs. Ends with what she is learning now, which shows growth.",exp:"Every bullet starts with a verb and most have a number. Even the internship has a concrete result.",certs:"Cloud certificates are highly searched in tech. Put the newest first.",skills:"Mix of languages, tools and concepts. Pin the 3 most important."}},
+ar:{label:"مهندسة برمجيات",name:"لمى الدوسري",headline:"مهندسة برمجيات | تطوير الأنظمة الخلفية (Python, Django) | أبني واجهات دفع يستخدمها أكثر من 200 ألف مستخدم",loc:"الرياض، السعودية",conn:"أكثر من 500 علاقة",otw:"متاحة لـ: وظائف مهندسة أنظمة خلفية أولى",
+about:["مهندسة أنظمة خلفية بخبرة 3 سنوات في بناء واجهات برمجية آمنة وعالية الاستخدام لمنتجات التقنية المالية.","في شركتي الحالية أقود خدمة المدفوعات التي تعالج أكثر من 40 ألف عملية يومياً. أهتم بالكود النظيف والاختبارات الجيدة والتوثيق الواضح.","أتعلم حالياً: Kubernetes وتصميم الأنظمة الكبيرة."],
+featured:[["GitHub: تطبيق تتبع المصاريف","تطبيق مفتوح المصدر لإدارة الميزانية، 120 نجمة"],["مقال: كيف قللنا زمن الاستجابة 45%","كُتب لمدونة الشركة التقنية"]],
+exp:[["مهندسة برمجيات","وادي باي (تقنية مالية) · دوام كامل","يناير 2024 – حتى الآن","الرياض · هجين",["المطورة الرئيسية لواجهة المدفوعات (Python, Django, PostgreSQL) لأكثر من 200 ألف مستخدم","خفّضت متوسط زمن الاستجابة من 420 إلى 230 جزءاً من الثانية باستخدام Redis","رفعت تغطية الاختبارات من 48% إلى 85% وأعددت نظام دمج آلي","أوجّه مطوّرَين مبتدئَين عبر مراجعة أسبوعية للكود"]],["مطورة برمجيات مبتدئة","نجد للحلول الرقمية · دوام كامل","يوليو 2022 – ديسمبر 2023","الرياض",["بنيت 14 واجهة برمجية لبوابة حجز حكومية إلكترونية","أصلحت أكثر من 60 خطأً في أول ستة أشهر"]],["متدربة هندسة برمجيات","شركة الخليج للخدمات اللوجستية · تدريب","يونيو 2021 – أغسطس 2021","الدمام",["بنيت لوحة بيانات داخلية بـ React استبدلت تقريراً يدوياً في Excel"]]],
+edu:[["جامعة الملك سعود","بكالوريوس علوم الحاسب","2018 – 2022","المعدل 4.6/5 · مرتبة الشرف الثانية · مشروع التخرج: روبوت محادثة عربي لخدمات الجامعة"]],
+certs:[["AWS Certified Solutions Architect – Associate","أمازون ويب سيرفسز","صدرت مارس 2025"],["AWS Certified Cloud Practitioner","أمازون ويب سيرفسز","صدرت يناير 2024"],["Professional Scrum Master I","Scrum.org","صدرت سبتمبر 2023"]],
+courses:["هياكل البيانات والخوارزميات (كورسيرا، جامعة كاليفورنيا سان دييغو)","الدليل الكامل لـ Docker و Kubernetes (يوديمي)","ممارسات البرمجة الآمنة (أكاديمية طويق)"],
+skills:["Python","Django","PostgreSQL","واجهات REST","Redis","Docker","Git","AWS","تصميم الأنظمة","اختبار الوحدات"],
+vol:[["مدربة برمجة","Women Who Code الرياض","2023 – حتى الآن","أقدم ورشة Python شهرية لأكثر من 30 مبتدئة"]],
+langs:["العربية – اللغة الأم","الإنجليزية – مهنية كاملة"],honors:["المركز الأول، هاكاثون طويق 2021 (فريق من 4)"],
+rec:["تولّت لمى مسؤولية أهم خدمة لدينا خلال أشهر. كودها هو المعيار الذي يتبعه باقي الفريق.","مدير الهندسة، وادي باي"],
+notes:{top:"العنوان يذكر المسمى والتقنيات وإنجازاً برقم. مسؤولو التوظيف يبحثون بهذه الكلمات نفسها.",about:"ثلاث فقرات قصيرة، وتنتهي بما تتعلمه الآن، وهذا يُظهر التطور.",exp:"كل نقطة تبدأ بفعل وأغلبها فيها رقم. حتى التدريب فيه نتيجة واضحة.",certs:"شهادات الحوسبة السحابية مطلوبة جداً في التقنية. ضعي الأحدث أولاً.",skills:"مزيج من اللغات والأدوات والمفاهيم. ثبّتي أهم 3."}}},
+
+{id:"civil",color:"#8a5a1f",ini:["HM","حم"],
+en:{label:"Civil engineer",name:"Eng. Hessa Al-Mutairi",headline:"Civil Engineer | Site & Project Engineer | Infrastructure and Residential Projects | PMP",loc:"Jeddah, Makkah Region",conn:"500+ connections",otw:"Open to: Project Engineer, Planning Engineer",
+about:["Civil engineer with 4 years of site and project experience on residential towers and road infrastructure worth over SAR 350 million.","I coordinate between consultants, contractors and authorities, track schedules in Primavera P6, and make sure quality and safety standards are met on site.","Registered Professional Engineer with the Saudi Council of Engineers."],
+featured:[["Project: Al-Murjan residential towers","Photos and case study, 3 towers, 18 floors"],["Presentation: Reducing concrete waste on site","Shared at a local engineering forum"]],
+exp:[["Project Engineer","Sahil Construction Co. · Full-time","Mar 2023 – Present","Jeddah · On-site",["Manage execution of 3 residential towers (SAR 210M) with a team of 6 engineers","Prepare weekly progress reports and Primavera P6 schedules","Cut rework by 20% with a pre-pour inspection checklist","Reached 1.2 million safe man-hours with zero lost-time incidents"]],["Site Engineer","Red Sea Roads Contracting · Full-time","Aug 2021 – Feb 2023","Jeddah",["Supervised 12 km of road works, earthworks and asphalt layers","Reviewed shop drawings and quantity take-offs with the consultant"]]],
+edu:[["King Abdulaziz University","Bachelor of Science, Civil Engineering","2016 – 2021","GPA 4.3/5 · Senior project: Sustainable concrete using recycled aggregate"]],
+certs:[["Professional Engineer registration","Saudi Council of Engineers (SCE)","Valid through 2027"],["Project Management Professional (PMP)","Project Management Institute (PMI)","Issued Jun 2024"],["OSHA 30-Hour Construction Safety","OSHA Training Institute","Issued 2022"]],
+courses:["Primavera P6 Professional","AutoCAD Civil 3D","Revit Structure (BIM)","FIDIC Contracts Basics"],
+skills:["Site supervision","Primavera P6","AutoCAD","Revit / BIM","Quantity surveying","Quality control","HSE","Contract administration"],
+vol:[["Mentor","Women in Engineering mentoring program","2024 – Present","Mentor 5 engineering students on site readiness"]],
+langs:["Arabic – Native","English – Professional working"],honors:["Best Site Engineer of the Year, Sahil Construction 2024"],
+rec:["Hessa runs a site with calm and precision. Consultants trust her reports because they are always accurate.","Project Manager, Sahil Construction"],
+notes:{top:"In engineering, put the license (PMP) in the headline. It is the first thing employers filter for.",about:"Uses project value in SAR to show the level of responsibility.",exp:"Safety numbers (man-hours, zero incidents) matter a lot in construction.",certs:"SCE registration is required to practice engineering in Saudi Arabia, so it goes first.",skills:"Include software (P6, Revit) and site skills (QC, HSE)."}},
+ar:{label:"مهندسة مدنية",name:"م. حصة المطيري",headline:"مهندسة مدنية | مهندسة موقع ومشاريع | مشاريع بنية تحتية وسكنية | PMP",loc:"جدة، منطقة مكة المكرمة",conn:"أكثر من 500 علاقة",otw:"متاحة لـ: مهندسة مشاريع، مهندسة تخطيط",
+about:["مهندسة مدنية بخبرة 4 سنوات في المواقع والمشاريع، على أبراج سكنية وطرق تتجاوز قيمتها 350 مليون ريال.","أنسّق بين الاستشاري والمقاول والجهات الحكومية، وأتابع الجداول الزمنية في Primavera P6، وأتأكد من تطبيق معايير الجودة والسلامة في الموقع.","مهندسة محترفة مسجلة في الهيئة السعودية للمهندسين."],
+featured:[["مشروع: أبراج المرجان السكنية","صور ودراسة حالة، 3 أبراج، 18 طابقاً"],["عرض: تقليل هدر الخرسانة في الموقع","قُدّم في ملتقى هندسي محلي"]],
+exp:[["مهندسة مشاريع","شركة ساحل للمقاولات · دوام كامل","مارس 2023 – حتى الآن","جدة · في الموقع",["أدير تنفيذ 3 أبراج سكنية (210 ملايين ريال) مع فريق من 6 مهندسين","أعدّ تقارير الإنجاز الأسبوعية وجداول Primavera P6","خفّضت إعادة العمل 20% بقائمة فحص قبل صب الخرسانة","وصلنا إلى 1.2 مليون ساعة عمل آمنة دون أي إصابة مضيّعة للوقت"]],["مهندسة موقع","البحر الأحمر لمقاولات الطرق · دوام كامل","أغسطس 2021 – فبراير 2023","جدة",["أشرفت على 12 كم من أعمال الطرق والحفر وطبقات الأسفلت","راجعت المخططات التنفيذية وحساب الكميات مع الاستشاري"]]],
+edu:[["جامعة الملك عبدالعزيز","بكالوريوس الهندسة المدنية","2016 – 2021","المعدل 4.3/5 · مشروع التخرج: خرسانة مستدامة من ركام معاد تدويره"]],
+certs:[["تسجيل مهندس محترف","الهيئة السعودية للمهندسين","سارية حتى 2027"],["محترف إدارة المشاريع (PMP)","معهد إدارة المشاريع (PMI)","صدرت يونيو 2024"],["سلامة البناء 30 ساعة (OSHA)","معهد التدريب OSHA","صدرت 2022"]],
+courses:["Primavera P6 الاحترافي","AutoCAD Civil 3D","Revit للإنشاءات (BIM)","أساسيات عقود فيديك (FIDIC)"],
+skills:["الإشراف على المواقع","Primavera P6","AutoCAD","Revit / BIM","حساب الكميات","ضبط الجودة","الصحة والسلامة والبيئة","إدارة العقود"],
+vol:[["مرشدة","برنامج إرشاد المهندسات","2024 – حتى الآن","أرشد 5 طالبات هندسة للاستعداد للعمل الميداني"]],
+langs:["العربية – اللغة الأم","الإنجليزية – مهنية"],honors:["أفضل مهندسة موقع للعام، شركة ساحل 2024"],
+rec:["حصة تدير الموقع بهدوء ودقة، والاستشاريون يثقون بتقاريرها لأنها دقيقة دائماً.","مدير المشروع، شركة ساحل للمقاولات"],
+notes:{top:"في الهندسة ضعي الرخصة (PMP) في العنوان، فهي أول ما يبحث عنه صاحب العمل.",about:"تذكر قيمة المشاريع بالريال لتُظهر حجم المسؤولية.",exp:"أرقام السلامة (ساعات العمل، صفر إصابات) مهمة جداً في البناء.",certs:"التسجيل في هيئة المهندسين شرط لممارسة المهنة في السعودية، لذلك يأتي أولاً.",skills:"البرامج (P6, Revit) مع مهارات الموقع (الجودة والسلامة)."}}},
+
+{id:"doctor",color:"#1f7a6b",ini:["RS","رش"],
+en:{label:"Doctor",name:"Dr. Reem Al-Shehri",headline:"Family Medicine Resident (R3) | Saudi Board Candidate | Interested in Preventive Care and Diabetes Management",loc:"Riyadh, Saudi Arabia",conn:"420 connections",otw:"Open to: Fellowship opportunities in diabetes care",
+about:["Third-year family medicine resident with a strong interest in chronic disease prevention, especially type 2 diabetes in young adults.","I have run outpatient clinics with 25 to 30 patients a day, led a quality improvement project on HbA1c follow-up, and published research on diabetes awareness among Saudi university students.","My goal is a fellowship in diabetes and community-based prevention programs."],
+featured:[["Publication: Diabetes awareness among Saudi university students","Peer-reviewed medical journal, 2025"],["Poster: Improving HbA1c follow-up rates","Family medicine conference 2024"]],
+exp:[["Family Medicine Resident","Al-Waha Medical City · Full-time","Oct 2023 – Present","Riyadh",["Run supervised outpatient clinics seeing 25 to 30 patients per day","Led a quality project that raised HbA1c follow-up from 52% to 78% in 6 months","Rotations: Internal Medicine, Pediatrics, OB/GYN, Emergency, Psychiatry","Teach clinical skills to 4th-year medical students"]],["Intern Physician","Al-Nour General Hospital · Internship","Jul 2022 – Jun 2023","Riyadh",["Completed a 12-month rotating internship across 6 departments","Recognized as Intern of the Month in Internal Medicine"]]],
+edu:[["Saudi Commission for Health Specialties","Saudi Board of Family Medicine (in progress)","2023 – 2027",""],["Imam Mohammad Ibn Saud Islamic University","MBBS, Bachelor of Medicine and Surgery","2016 – 2022","GPA 4.7/5 · First honors"]],
+certs:[["Professional Classification: Resident","Saudi Commission for Health Specialties (SCFHS)","Valid through 2027"],["Basic Life Support (BLS)","American Heart Association","Issued 2025"],["Advanced Cardiovascular Life Support (ACLS)","American Heart Association","Issued 2025"],["Good Clinical Practice (GCP)","NIDA Clinical Trials Network","Issued 2024"]],
+courses:["Introduction to Clinical Research (online)","Motivational Interviewing for Health Professionals","Point-of-Care Ultrasound Basics"],
+skills:["Patient care","Chronic disease management","Diabetes care","Clinical research","Quality improvement","Medical education","Evidence-based medicine"],
+vol:[["Volunteer Physician","Saudi Red Crescent, Hajj Medical Mission","Jun 2024","First aid and triage for pilgrims in Mina"],["Health Educator","Diabetes awareness campaign","2023","Screened 300+ people in public malls"]],
+langs:["Arabic – Native","English – Full professional"],honors:["Best Research Presentation, Residency Research Day 2024"],
+rec:["Dr. Reem combines strong clinical judgment with real compassion. Her project changed how our clinic follows up diabetic patients.","Program Director, Family Medicine Residency"],
+notes:{top:"Doctors list training level (R3), board status and clinical interest. This attracts fellowships and research contacts.",about:"Mentions patient numbers and a measurable project result.",exp:"For medical careers, rotations and quality projects show breadth and initiative.",certs:"SCFHS classification, BLS and ACLS are expected. Add issue and expiry dates.",skills:"Clinical and academic skills together. Publications go in Featured."}},
+ar:{label:"طبيبة",name:"د. ريم الشهري",headline:"طبيبة مقيمة في طب الأسرة (السنة الثالثة) | مرشحة للبورد السعودي | مهتمة بالرعاية الوقائية وإدارة السكري",loc:"الرياض، السعودية",conn:"420 علاقة",otw:"متاحة لـ: فرص زمالة في رعاية مرضى السكري",
+about:["طبيبة مقيمة في السنة الثالثة بطب الأسرة، مهتمة بالوقاية من الأمراض المزمنة، خاصة السكري من النوع الثاني لدى الشباب.","أدرت عيادات خارجية بمعدل 25 إلى 30 مريضاً يومياً، وقدت مشروع تحسين جودة لمتابعة تحليل السكر التراكمي، ونشرت بحثاً عن الوعي بالسكري لدى طالبات وطلاب الجامعات السعودية.","هدفي الحصول على زمالة في السكري وبناء برامج وقاية مجتمعية."],
+featured:[["بحث منشور: الوعي بالسكري لدى طلاب الجامعات السعودية","مجلة طبية محكّمة، 2025"],["ملصق علمي: تحسين نسب متابعة السكر التراكمي","مؤتمر طب الأسرة 2024"]],
+exp:[["طبيبة مقيمة في طب الأسرة","مدينة الواحة الطبية · دوام كامل","أكتوبر 2023 – حتى الآن","الرياض",["أدير عيادات خارجية تحت الإشراف بمعدل 25 إلى 30 مريضاً يومياً","قدت مشروع جودة رفع نسبة متابعة السكر التراكمي من 52% إلى 78% خلال 6 أشهر","الدورات التدريبية: الباطنة، الأطفال، النساء والولادة، الطوارئ، الطب النفسي","أدرّس المهارات السريرية لطلاب السنة الرابعة"]],["طبيبة امتياز","مستشفى النور العام · امتياز","يوليو 2022 – يونيو 2023","الرياض",["أكملت سنة امتياز كاملة بين 6 أقسام","حصلت على لقب طبيبة امتياز الشهر في الباطنة"]]],
+edu:[["الهيئة السعودية للتخصصات الصحية","البورد السعودي لطب الأسرة (قيد الدراسة)","2023 – 2027",""],["جامعة الإمام محمد بن سعود الإسلامية","بكالوريوس الطب والجراحة","2016 – 2022","المعدل 4.7/5 · مرتبة الشرف الأولى"]],
+certs:[["التصنيف المهني: طبيب مقيم","الهيئة السعودية للتخصصات الصحية","ساري حتى 2027"],["دعم الحياة الأساسي (BLS)","جمعية القلب الأمريكية","صدرت 2025"],["دعم الحياة القلبي المتقدم (ACLS)","جمعية القلب الأمريكية","صدرت 2025"],["الممارسة السريرية الجيدة (GCP)","شبكة NIDA للتجارب السريرية","صدرت 2024"]],
+courses:["مقدمة في البحث السريري (عن بُعد)","المقابلة التحفيزية للممارسين الصحيين","أساسيات الأشعة الصوتية بجانب السرير"],
+skills:["رعاية المرضى","إدارة الأمراض المزمنة","رعاية مرضى السكري","البحث السريري","تحسين الجودة","التعليم الطبي","الطب المبني على الدليل"],
+vol:[["طبيبة متطوعة","هيئة الهلال الأحمر السعودي، البعثة الطبية للحج","يونيو 2024","إسعافات أولية وفرز للحجاج في منى"],["مثقفة صحية","حملة توعية بالسكري","2023","فحص أكثر من 300 شخص في المراكز التجارية"]],
+langs:["العربية – اللغة الأم","الإنجليزية – مهنية كاملة"],honors:["أفضل عرض بحثي، يوم أبحاث برنامج الإقامة 2024"],
+rec:["تجمع د. ريم بين الحكم السريري القوي والرحمة الحقيقية. مشروعها غيّر طريقة متابعة عيادتنا لمرضى السكري.","مدير برنامج الإقامة في طب الأسرة"],
+notes:{top:"الطبيبات يكتبن مستوى التدريب (R3) وحالة البورد والاهتمام السريري، وهذا يجذب فرص الزمالة والبحث.",about:"تذكر عدد المرضى ونتيجة مشروع قابلة للقياس.",exp:"في المهن الطبية، الدورات بين الأقسام ومشاريع الجودة تُظهر الشمول والمبادرة.",certs:"تصنيف الهيئة و BLS و ACLS متوقعة. أضيفي تاريخ الإصدار والانتهاء.",skills:"مهارات سريرية وأكاديمية معاً. الأبحاث مكانها في الأعمال المميزة."}}},
+
+{id:"nurse",color:"#b0466b",ini:["SA","شع"],
+en:{label:"Nurse",name:"Shahad Al-Anazi, RN",headline:"Registered Nurse | ICU and Critical Care | BLS, ACLS Certified | Patient Safety Champion",loc:"Hail, Saudi Arabia",conn:"350 connections",otw:"",
+about:["Registered nurse with 4 years of experience, including 3 years in an adult intensive care unit.","I care for ventilated and critically ill patients, train new nurses on ICU protocols, and lead my unit's hand hygiene and fall-prevention audits."],
+featured:[["Poster: Reducing pressure injuries in ICU","Hospital quality day 2025"]],
+exp:[["ICU Staff Nurse","Hail Specialist Hospital · Full-time","Jan 2023 – Present","Hail",["Care for 1 to 2 critically ill patients per shift, including ventilated patients","Helped reduce pressure injuries by 35% with a 2-hour repositioning checklist","Precept and orient 8 newly hired nurses","Unit champion for hand hygiene audits (compliance 96%)"]],["Staff Nurse, Medical Ward","Al-Nahda General Hospital · Full-time","Sep 2021 – Dec 2022","Hail",["Cared for 6 to 8 patients per shift on a 30-bed medical ward"]]],
+edu:[["University of Hail","Bachelor of Science in Nursing (BSN)","2016 – 2021","GPA 4.4/5 · Internship year in critical care"]],
+certs:[["Saudi Nursing Licensure Exam (SNLE)","Saudi Commission for Health Specialties","Passed 2021"],["Professional Classification: Nurse Specialist","SCFHS","Valid through 2027"],["Basic Life Support (BLS)","American Heart Association","Issued 2025"],["Advanced Cardiovascular Life Support (ACLS)","American Heart Association","Issued 2025"]],
+courses:["Critical Care Nursing Course","Infection Prevention and Control Basics","Mechanical Ventilation Fundamentals"],
+skills:["Critical care","Ventilator management","Patient assessment","Infection control","Patient safety","Preceptorship","Electronic health records"],
+vol:[["Volunteer Nurse","Blood donation campaigns","2022 – Present","Support donors at university and mall campaigns"]],
+langs:["Arabic – Native","English – Professional working"],honors:["Nurse of the Year, ICU 2024"],
+rec:["Shahad is calm in emergencies and generous in teaching. New nurses ask to be placed on her shift.","ICU Nurse Manager"],
+notes:{top:"Nurses list their unit (ICU), key certificates and a special role.",about:"Two short paragraphs are enough when the experience is focused.",exp:"Patient ratios, audit compliance and safety results show quality of care.",certs:"SNLE and SCFHS classification are required. BLS and ACLS show readiness.",skills:"Clinical skills plus teaching (preceptorship)."}},
+ar:{label:"ممرضة",name:"شهد العنزي، ممرضة مسجلة",headline:"ممرضة مسجلة | العناية المركزة والحرجة | حاصلة على BLS و ACLS | سفيرة سلامة المرضى",loc:"حائل، السعودية",conn:"350 علاقة",otw:"",
+about:["ممرضة مسجلة بخبرة 4 سنوات، منها 3 سنوات في العناية المركزة للكبار.","أرعى مرضى أجهزة التنفس والحالات الحرجة، وأدرّب الممرضات الجدد على بروتوكولات العناية المركزة، وأقود تدقيق نظافة اليدين ومنع السقوط في وحدتي."],
+featured:[["ملصق علمي: تقليل تقرحات الفراش في العناية المركزة","يوم الجودة في المستشفى 2025"]],
+exp:[["ممرضة عناية مركزة","مستشفى حائل التخصصي · دوام كامل","يناير 2023 – حتى الآن","حائل",["أرعى مريضاً أو مريضين في حالة حرجة في كل مناوبة، بينهم مرضى على أجهزة التنفس","ساهمت في خفض تقرحات الفراش 35% بقائمة تغيير وضعية كل ساعتين","أشرف على تدريب وتهيئة 8 ممرضات جدد","سفيرة الوحدة لتدقيق نظافة اليدين (نسبة الالتزام 96%)"]],["ممرضة، قسم الباطنة","مستشفى النهضة العام · دوام كامل","سبتمبر 2021 – ديسمبر 2022","حائل",["رعاية 6 إلى 8 مرضى في كل مناوبة في قسم من 30 سريراً"]]],
+edu:[["جامعة حائل","بكالوريوس التمريض","2016 – 2021","المعدل 4.4/5 · سنة الامتياز في العناية الحرجة"]],
+certs:[["اختبار الترخيص السعودي للتمريض (SNLE)","الهيئة السعودية للتخصصات الصحية","اجتازته 2021"],["التصنيف المهني: أخصائية تمريض","الهيئة السعودية للتخصصات الصحية","ساري حتى 2027"],["دعم الحياة الأساسي (BLS)","جمعية القلب الأمريكية","صدرت 2025"],["دعم الحياة القلبي المتقدم (ACLS)","جمعية القلب الأمريكية","صدرت 2025"]],
+courses:["دورة تمريض العناية الحرجة","أساسيات مكافحة العدوى","أساسيات التنفس الصناعي"],
+skills:["العناية الحرجة","إدارة أجهزة التنفس","تقييم المريض","مكافحة العدوى","سلامة المرضى","الإشراف التدريبي","السجلات الصحية الإلكترونية"],
+vol:[["ممرضة متطوعة","حملات التبرع بالدم","2022 – حتى الآن","أساعد المتبرعين في حملات الجامعة والمراكز التجارية"]],
+langs:["العربية – اللغة الأم","الإنجليزية – مهنية"],honors:["ممرضة العام، العناية المركزة 2024"],
+rec:["شهد هادئة في الطوارئ وكريمة في التعليم. الممرضات الجدد يطلبن العمل في مناوبتها.","مديرة التمريض في العناية المركزة"],
+notes:{top:"الممرضات يذكرن الوحدة (العناية المركزة) وأهم الشهادات ودوراً مميزاً.",about:"فقرتان قصيرتان تكفيان عندما تكون الخبرة مركّزة.",exp:"عدد المرضى ونسب الالتزام ونتائج السلامة تُظهر جودة الرعاية.",certs:"اختبار الترخيص وتصنيف الهيئة مطلوبان. BLS و ACLS تُظهران الجاهزية.",skills:"مهارات سريرية مع مهارة التدريب والإشراف."}}},
+
+{id:"pharm",color:"#6b4aa0",ini:["NH","نح"],
+en:{label:"Pharmacist",name:"Nouf Al-Harbi, PharmD",headline:"Clinical Pharmacist | PharmD | Antimicrobial Stewardship | Board Certification Candidate",loc:"Dammam, Eastern Province",conn:"380 connections",otw:"",
+about:["Clinical pharmacist working in internal medicine and the ICU, focused on safe and effective antibiotic use.","I review medication orders, adjust doses for kidney function, and counsel patients before discharge. I am part of the hospital's antimicrobial stewardship team."],
+featured:[["Protocol: IV-to-oral antibiotic switch","Adopted hospital-wide in 2025"]],
+exp:[["Clinical Pharmacist","Eastern Region Hospital · Full-time","Feb 2023 – Present","Dammam",["Review 80+ medication orders per shift in ICU and internal medicine","Co-wrote an IV-to-oral antibiotic protocol saving an estimated SAR 400K in a year","Counsel 15 to 20 patients per day before discharge"]],["Pharmacy Intern","Al-Shifa Community Pharmacy · Internship","2021 – 2022","Khobar",["Dispensed prescriptions and counseled walk-in patients on OTC medicines"]]],
+edu:[["Imam Abdulrahman Bin Faisal University","Doctor of Pharmacy (PharmD)","2016 – 2022","GPA 4.5/5 · Research on drug interactions in elderly patients"]],
+certs:[["Saudi Pharmacist Licensure Exam (SPLE)","Saudi Commission for Health Specialties","Passed 2022"],["Professional Classification: Pharmacist","SCFHS","Valid through 2026"],["Basic Life Support (BLS)","American Heart Association","Issued 2025"]],
+courses:["Antimicrobial Stewardship Fundamentals (online)","Renal Dose Adjustment Workshop"],
+skills:["Clinical pharmacy","Antimicrobial stewardship","Dose adjustment","Patient counseling","Drug information","Pharmacovigilance"],
+vol:[["Volunteer","Medication safety awareness week","2024","Ran booths on safe storage of medicines"]],
+langs:["Arabic – Native","English – Full professional"],honors:["Employee Excellence Award, Pharmacy Department 2024"],
+rec:["Nouf catches problems before they reach the patient. Physicians actively seek her advice.","ICU Consultant"],
+notes:{top:"Degree (PharmD) next to the name and a specialty in the headline.",about:"Short but clear: where she works, what she does, what she cares about.",exp:"Cost savings in SAR is a strong result for any healthcare role.",certs:"SPLE and SCFHS classification are required to practice. Always list them.",skills:"Specific clinical skills, not general ones like 'teamwork'."}},
+ar:{label:"صيدلانية",name:"نوف الحربي، دكتورة صيدلة",headline:"صيدلانية إكلينيكية | دكتوراه صيدلة (PharmD) | ترشيد استخدام المضادات الحيوية | مرشحة لشهادة البورد",loc:"الدمام، المنطقة الشرقية",conn:"380 علاقة",otw:"",
+about:["صيدلانية إكلينيكية في الباطنة والعناية المركزة، أركّز على الاستخدام الآمن والفعّال للمضادات الحيوية.","أراجع الوصفات الطبية، وأعدّل الجرعات حسب وظائف الكلى، وأثقّف المرضى قبل الخروج. أنا عضوة في فريق ترشيد المضادات الحيوية بالمستشفى."],
+featured:[["بروتوكول: التحويل من المضاد الوريدي إلى الفموي","اعتُمد في المستشفى كاملاً 2025"]],
+exp:[["صيدلانية إكلينيكية","مستشفى المنطقة الشرقية · دوام كامل","فبراير 2023 – حتى الآن","الدمام",["أراجع أكثر من 80 وصفة في كل مناوبة في العناية المركزة والباطنة","شاركت في كتابة بروتوكول تحويل المضادات وفّر نحو 400 ألف ريال في سنة","أثقّف 15 إلى 20 مريضاً يومياً قبل الخروج"]],["متدربة صيدلة","صيدلية الشفاء المجتمعية · تدريب","2021 – 2022","الخبر",["صرف الوصفات وتثقيف المراجعين عن الأدوية دون وصفة"]]],
+edu:[["جامعة الإمام عبدالرحمن بن فيصل","دكتور صيدلة (PharmD)","2016 – 2022","المعدل 4.5/5 · بحث عن التداخلات الدوائية لدى كبار السن"]],
+certs:[["اختبار الترخيص السعودي للصيادلة (SPLE)","الهيئة السعودية للتخصصات الصحية","اجتازته 2022"],["التصنيف المهني: صيدلي","الهيئة السعودية للتخصصات الصحية","ساري حتى 2026"],["دعم الحياة الأساسي (BLS)","جمعية القلب الأمريكية","صدرت 2025"]],
+courses:["أساسيات ترشيد المضادات الحيوية (عن بُعد)","ورشة تعديل الجرعات الكلوية"],
+skills:["الصيدلة الإكلينيكية","ترشيد المضادات الحيوية","تعديل الجرعات","تثقيف المرضى","معلومات الأدوية","اليقظة الدوائية"],
+vol:[["متطوعة","أسبوع التوعية بسلامة الأدوية","2024","أدرت أركاناً عن التخزين الآمن للأدوية"]],
+langs:["العربية – اللغة الأم","الإنجليزية – مهنية كاملة"],honors:["جائزة التميز الوظيفي، قسم الصيدلة 2024"],
+rec:["نوف تكتشف المشكلات قبل أن تصل إلى المريض، والأطباء يطلبون رأيها باستمرار.","استشاري العناية المركزة"],
+notes:{top:"الدرجة العلمية بجانب الاسم والتخصص في العنوان.",about:"قصيرة وواضحة: أين تعمل، ماذا تفعل، وما الذي يهمها.",exp:"التوفير المالي بالريال إنجاز قوي في أي وظيفة صحية.",certs:"اختبار الترخيص وتصنيف الهيئة شرط لممارسة المهنة، فاكتبيهما دائماً.",skills:"مهارات إكلينيكية محددة، وليست عامة مثل العمل الجماعي."}}},
+
+{id:"acct",color:"#2a6e3f",ini:["NO","نع"],
+en:{label:"Accountant",name:"Noura Al-Otaibi, CMA",headline:"Senior Accountant | CMA | IFRS Reporting, Budgeting and Financial Analysis | SAP, Power BI",loc:"Riyadh, Saudi Arabia",conn:"500+ connections",otw:"Open to: Financial Analyst, Finance Manager",
+about:["Accountant with 5 years of experience in financial reporting and budgeting for retail and manufacturing companies.","I prepare monthly and annual statements under IFRS, manage VAT filings with ZATCA, and turn numbers into dashboards managers can act on.","Certified Management Accountant (CMA), currently studying for SOCPA."],
+featured:[["Power BI dashboard sample","Monthly sales and margin report (sample data)"]],
+exp:[["Senior Accountant","Al-Nakheel Retail Group · Full-time","Apr 2023 – Present","Riyadh",["Shortened month-end close from 10 days to 6 by automating reconciliations","Prepare IFRS financial statements for 3 subsidiaries","Built Power BI dashboards used by the CFO in weekly meetings","Managed 2 external audits with zero material findings"]],["Accountant","Saudi Pack Industries · Full-time","Sep 2021 – Mar 2023","Riyadh",["Handled accounts payable for 150+ suppliers","Prepared quarterly VAT returns submitted to ZATCA"]]],
+edu:[["Princess Nourah bint Abdulrahman University","Bachelor of Business Administration, Accounting","2017 – 2021","GPA 4.6/5 · First honors"]],
+certs:[["Certified Management Accountant (CMA)","Institute of Management Accountants (IMA)","Issued 2024"],["SOCPA Fellowship (in progress)","Saudi Organization for Chartered and Professional Accountants","Expected 2026"],["Microsoft Certified: Power BI Data Analyst Associate","Microsoft","Issued 2023"]],
+courses:["IFRS Fundamentals","Financial Modeling in Excel","VAT in Saudi Arabia (ZATCA training)"],
+skills:["IFRS","Financial reporting","Budgeting","VAT","SAP FICO","Excel","Power BI","Audit coordination"],
+vol:[["Treasurer","University Accounting Club","2019 – 2021","Managed the club budget and event sponsorships"]],
+langs:["Arabic – Native","English – Professional working"],honors:["Dean's List, 6 semesters"],
+rec:["Noura made our close faster and our reports clearer. I trust her numbers completely.","Finance Manager, Al-Nakheel Retail"],
+notes:{top:"Certificate after the name and tools (SAP, Power BI) in the headline.",about:"Mentions local knowledge (ZATCA, VAT), which Saudi employers value.",exp:"Time saved (10 days to 6) and audit results are strong finance achievements.",certs:"A certificate 'in progress' with an expected date is fine and honest.",skills:"Standards (IFRS), systems (SAP) and analysis tools together."}},
+ar:{label:"محاسبة",name:"نورة العتيبي، CMA",headline:"محاسبة أولى | CMA | إعداد التقارير وفق IFRS والميزانيات والتحليل المالي | SAP و Power BI",loc:"الرياض، السعودية",conn:"أكثر من 500 علاقة",otw:"متاحة لـ: محللة مالية، مديرة مالية",
+about:["محاسبة بخبرة 5 سنوات في التقارير المالية والميزانيات لشركات التجزئة والتصنيع.","أعدّ القوائم المالية الشهرية والسنوية وفق المعايير الدولية IFRS، وأدير إقرارات ضريبة القيمة المضافة مع هيئة الزكاة والضريبة والجمارك، وأحوّل الأرقام إلى لوحات بيانات يعتمد عليها المديرون.","محاسبة إدارية معتمدة (CMA)، وأدرس حالياً لزمالة سوكبا."],
+featured:[["نموذج لوحة بيانات Power BI","تقرير المبيعات والهوامش الشهري (بيانات تجريبية)"]],
+exp:[["محاسبة أولى","مجموعة النخيل للتجزئة · دوام كامل","أبريل 2023 – حتى الآن","الرياض",["قلّصت إقفال نهاية الشهر من 10 أيام إلى 6 بأتمتة المطابقات","أعدّ القوائم المالية وفق IFRS لـ 3 شركات تابعة","بنيت لوحات Power BI يستخدمها المدير المالي في الاجتماعات الأسبوعية","أدرت مراجعتين خارجيتين دون أي ملاحظات جوهرية"]],["محاسبة","مصانع التغليف السعودية · دوام كامل","سبتمبر 2021 – مارس 2023","الرياض",["أدرت حسابات الدائنين لأكثر من 150 مورداً","أعددت إقرارات ضريبة القيمة المضافة الربعية لهيئة الزكاة والضريبة والجمارك"]]],
+edu:[["جامعة الأميرة نورة بنت عبدالرحمن","بكالوريوس إدارة الأعمال، تخصص المحاسبة","2017 – 2021","المعدل 4.6/5 · مرتبة الشرف الأولى"]],
+certs:[["محاسب إداري معتمد (CMA)","معهد المحاسبين الإداريين (IMA)","صدرت 2024"],["زمالة سوكبا (قيد الدراسة)","الهيئة السعودية للمراجعين والمحاسبين","متوقعة 2026"],["Microsoft Power BI Data Analyst Associate","مايكروسوفت","صدرت 2023"]],
+courses:["أساسيات المعايير الدولية IFRS","النمذجة المالية في Excel","ضريبة القيمة المضافة في السعودية (تدريب الهيئة)"],
+skills:["IFRS","التقارير المالية","الميزانيات","ضريبة القيمة المضافة","SAP FICO","Excel","Power BI","تنسيق المراجعة"],
+vol:[["أمينة الصندوق","نادي المحاسبة الجامعي","2019 – 2021","أدرت ميزانية النادي ورعايات الفعاليات"]],
+langs:["العربية – اللغة الأم","الإنجليزية – مهنية"],honors:["قائمة العميدة، 6 فصول دراسية"],
+rec:["جعلت نورة إقفالنا أسرع وتقاريرنا أوضح. أثق بأرقامها تماماً.","المدير المالي، مجموعة النخيل للتجزئة"],
+notes:{top:"الشهادة بعد الاسم والأدوات (SAP, Power BI) في العنوان.",about:"تذكر المعرفة المحلية (الزكاة والضريبة)، وهذا يقدّره أصحاب العمل في السعودية.",exp:"توفير الوقت (من 10 أيام إلى 6) ونتائج المراجعة إنجازات قوية في المالية.",certs:"كتابة شهادة قيد الدراسة مع التاريخ المتوقع أمر مقبول وصادق.",skills:"المعايير (IFRS) والأنظمة (SAP) وأدوات التحليل معاً."}}},
+
+{id:"mkt",color:"#a2462b",ini:["SQ","سق"],
+en:{label:"Digital marketing",name:"Sara Al-Qahtani",headline:"Digital Marketing Specialist | Paid Social and Content | Grew e-commerce sales 3x through Meta and TikTok Ads",loc:"Khobar, Eastern Province",conn:"1,200 followers",otw:"",
+about:["Digital marketer who turns content into sales. I plan campaigns, write copy in Arabic and English, and manage ad budgets of up to SAR 80K per month.","I love testing: every campaign I run has at least 3 creative versions so the data decides, not opinions."],
+featured:[["Case study: Ramadan campaign for a perfume brand","ROAS 5.2, 1.4M reach"],["Portfolio of social content","Behance link"]],
+exp:[["Digital Marketing Specialist","Bloom Perfumes · Full-time","May 2023 – Present","Khobar",["Grew online sales 3x in 12 months through Meta and TikTok ads","Manage monthly ad spend of SAR 80K with an average ROAS of 4.1","Built an influencer program with 25 micro-creators","Raised Instagram engagement rate from 2% to 6%"]],["Social Media Coordinator","Fikra Creative Agency · Full-time","Jan 2022 – Apr 2023","Dammam",["Created content calendars for 6 client brands","Wrote 300+ posts in Arabic and English"]]],
+edu:[["Imam Abdulrahman Bin Faisal University","Bachelor of Arts, Marketing","2017 – 2021",""]],
+certs:[["Google Ads Search Certification","Google","Issued 2025"],["Meta Certified Media Buying Professional","Meta","Issued 2024"],["Content Marketing Certification","HubSpot Academy","Issued 2023"],["Google Analytics Certification","Google","Issued 2024"]],
+courses:["Copywriting for Conversion (Udemy)","Fundamentals of Digital Marketing (Google)"],
+skills:["Meta Ads","TikTok Ads","Google Ads","Copywriting","Content strategy","Google Analytics","Canva","A/B testing"],
+vol:[["Social Media Volunteer","Local charity food bank","2022 – Present","Run their Instagram for donation drives"]],
+langs:["Arabic – Native","English – Full professional"],honors:[],
+rec:["Sara brings ideas and the data to back them up. Our best sales year came from her campaigns.","Brand Manager, Bloom Perfumes"],
+notes:{top:"A result in the headline (3x sales) is very attractive for marketing roles.",about:"Shows personality and a working method (testing) in two sentences.",exp:"Marketing roles live on numbers: ROAS, budget, engagement, reach.",certs:"Free platform certificates from Google, Meta and HubSpot are respected and easy to earn.",skills:"Name the ad platforms exactly as recruiters search for them."}},
+ar:{label:"تسويق رقمي",name:"سارة القحطاني",headline:"أخصائية تسويق رقمي | إعلانات التواصل الاجتماعي والمحتوى | ضاعفت مبيعات متجر إلكتروني 3 مرات عبر إعلانات ميتا وتيك توك",loc:"الخبر، المنطقة الشرقية",conn:"1,200 متابع",otw:"",
+about:["مسوّقة رقمية تحوّل المحتوى إلى مبيعات. أخطط الحملات، وأكتب النصوص بالعربية والإنجليزية، وأدير ميزانيات إعلانية تصل إلى 80 ألف ريال شهرياً.","أحب التجربة: كل حملة أديرها فيها 3 تصاميم على الأقل، لتقرر البيانات وليس الآراء."],
+featured:[["دراسة حالة: حملة رمضان لعلامة عطور","عائد إعلاني 5.2، وصول 1.4 مليون"],["معرض محتوى التواصل الاجتماعي","رابط Behance"]],
+exp:[["أخصائية تسويق رقمي","بلوم للعطور · دوام كامل","مايو 2023 – حتى الآن","الخبر",["ضاعفت المبيعات الإلكترونية 3 مرات خلال 12 شهراً عبر إعلانات ميتا وتيك توك","أدير إنفاقاً إعلانياً شهرياً 80 ألف ريال بعائد متوسط 4.1","بنيت برنامج مؤثرين مع 25 صانعة محتوى","رفعت معدل التفاعل في إنستغرام من 2% إلى 6%"]],["منسقة تواصل اجتماعي","وكالة فكرة الإبداعية · دوام كامل","يناير 2022 – أبريل 2023","الدمام",["أعددت تقويمات المحتوى لـ 6 علامات تجارية","كتبت أكثر من 300 منشور بالعربية والإنجليزية"]]],
+edu:[["جامعة الإمام عبدالرحمن بن فيصل","بكالوريوس التسويق","2017 – 2021",""]],
+certs:[["شهادة إعلانات بحث Google","جوجل","صدرت 2025"],["Meta Certified Media Buying Professional","ميتا","صدرت 2024"],["شهادة تسويق المحتوى","أكاديمية HubSpot","صدرت 2023"],["شهادة Google Analytics","جوجل","صدرت 2024"]],
+courses:["كتابة نصوص تحقق مبيعات (يوديمي)","أساسيات التسويق الرقمي (جوجل)"],
+skills:["إعلانات ميتا","إعلانات تيك توك","إعلانات جوجل","كتابة الإعلانات","استراتيجية المحتوى","Google Analytics","Canva","اختبار A/B"],
+vol:[["متطوعة تواصل اجتماعي","بنك الطعام الخيري المحلي","2022 – حتى الآن","أدير حساب إنستغرام لحملات التبرع"]],
+langs:["العربية – اللغة الأم","الإنجليزية – مهنية كاملة"],honors:[],
+rec:["سارة تأتي بالأفكار وبالبيانات التي تدعمها. أفضل سنة مبيعات لدينا كانت من حملاتها.","مدير العلامة التجارية، بلوم للعطور"],
+notes:{top:"وضع إنجاز في العنوان (3 أضعاف المبيعات) جذاب جداً في وظائف التسويق.",about:"تُظهر شخصيتها وطريقة عملها (التجربة) في جملتين.",exp:"وظائف التسويق تعتمد على الأرقام: العائد الإعلاني، الميزانية، التفاعل، الوصول.",certs:"شهادات المنصات المجانية من جوجل وميتا و HubSpot محترمة وسهلة الحصول.",skills:"اكتبي أسماء منصات الإعلان كما يبحث عنها مسؤولو التوظيف."}}},
+
+{id:"design",color:"#5a4fb5",ini:["RB","رب"],
+en:{label:"UX/UI designer",name:"Ruba Al-Shammari",headline:"Product Designer (UX/UI) | Mobile Apps and Arabic-first Design | Figma, User Research",loc:"Riyadh, Saudi Arabia",conn:"640 connections",otw:"Open to: Product Designer roles",
+about:["Product designer who makes apps simple for Arabic and English users.","I run user interviews, design flows and prototypes in Figma, and work closely with developers until the feature ships. My redesign of a booking flow cut drop-offs by 30%."],
+featured:[["Portfolio: 3 case studies","Problem, research, design and results"],["Case study: Clinic booking app redesign","Drop-off reduced 30%"]],
+exp:[["Product Designer","Sehha App (health tech) · Full-time","Feb 2024 – Present","Riyadh · Hybrid",["Redesigned the appointment booking flow, reducing drop-offs by 30%","Built the app's design system with 80+ components in Arabic and English","Run 6 to 8 user interviews per month"]],["UI Designer","Pixel Studio · Contract","Jun 2022 – Jan 2024","Remote",["Designed screens for 9 mobile apps and 4 websites"]]],
+edu:[["Effat University","Bachelor of Science, Visual and Digital Production","2018 – 2022","Graduation project: Arabic reading app for children"]],
+certs:[["Google UX Design Professional Certificate","Google (Coursera)","Issued 2022"],["Certified Usability Analyst basics course","Online","Issued 2023"]],
+courses:["Interaction Design Foundation: Mobile UX","Accessibility for Designers","Arabic Typography Workshop"],
+skills:["Figma","User research","Wireframing","Prototyping","Design systems","Usability testing","Arabic UI (RTL)","Accessibility"],
+vol:[["Design Mentor","University design club","2023 – Present","Review student portfolios monthly"]],
+langs:["Arabic – Native","English – Full professional"],honors:["Winner, Riyadh design challenge 2023"],
+rec:["Ruba always starts with the user. Her designs made our app easier for our parents' generation, not only for us.","Head of Product, Sehha App"],
+notes:{top:"Designers name the type of design, a specialty (Arabic-first) and the main tool.",about:"A portfolio is essential, and she points to it with a measurable result.",exp:"Even designers can show numbers: drop-off, components, interviews.",certs:"The Google UX certificate is a good starting point for beginners.",skills:"Arabic RTL design is a rare skill. Highlight it."}},
+ar:{label:"مصممة تجربة مستخدم",name:"ربى الشمري",headline:"مصممة منتجات (UX/UI) | تطبيقات الجوال والتصميم العربي أولاً | Figma وبحث المستخدم",loc:"الرياض، السعودية",conn:"640 علاقة",otw:"متاحة لـ: وظائف مصممة منتجات",
+about:["مصممة منتجات أجعل التطبيقات سهلة للمستخدمين بالعربية والإنجليزية.","أجري مقابلات مع المستخدمين، وأصمم المسارات والنماذج الأولية في Figma، وأعمل مع المطورين حتى إطلاق الميزة. إعادة تصميمي لمسار الحجز قللت نسبة ترك الحجز 30%."],
+featured:[["معرض الأعمال: 3 دراسات حالة","المشكلة، البحث، التصميم، والنتائج"],["دراسة حالة: إعادة تصميم تطبيق حجز عيادات","انخفاض ترك الحجز 30%"]],
+exp:[["مصممة منتجات","تطبيق صحة (تقنية صحية) · دوام كامل","فبراير 2024 – حتى الآن","الرياض · هجين",["أعدت تصميم مسار حجز المواعيد، فانخفضت نسبة الترك 30%","بنيت نظام تصميم التطبيق بأكثر من 80 مكوّناً بالعربية والإنجليزية","أجري 6 إلى 8 مقابلات مع المستخدمين شهرياً"]],["مصممة واجهات","استوديو بكسل · عقد","يونيو 2022 – يناير 2024","عن بُعد",["صممت شاشات 9 تطبيقات جوال و4 مواقع إلكترونية"]]],
+edu:[["جامعة عفت","بكالوريوس الإنتاج المرئي والرقمي","2018 – 2022","مشروع التخرج: تطبيق قراءة عربي للأطفال"]],
+certs:[["شهادة Google الاحترافية في تصميم تجربة المستخدم","جوجل (كورسيرا)","صدرت 2022"],["دورة أساسيات تحليل قابلية الاستخدام","عن بُعد","صدرت 2023"]],
+courses:["تجربة المستخدم للجوال (Interaction Design Foundation)","إمكانية الوصول للمصممين","ورشة الخط والطباعة العربية"],
+skills:["Figma","بحث المستخدم","المخططات الأولية","النماذج التفاعلية","أنظمة التصميم","اختبار قابلية الاستخدام","واجهات عربية (من اليمين لليسار)","إمكانية الوصول"],
+vol:[["مرشدة تصميم","نادي التصميم الجامعي","2023 – حتى الآن","أراجع معارض أعمال الطالبات شهرياً"]],
+langs:["العربية – اللغة الأم","الإنجليزية – مهنية كاملة"],honors:["الفائزة في تحدي التصميم بالرياض 2023"],
+rec:["ربى تبدأ دائماً من المستخدم. تصاميمها جعلت تطبيقنا أسهل لجيل والدينا، وليس لنا فقط.","رئيس المنتج، تطبيق صحة"],
+notes:{top:"المصممات يذكرن نوع التصميم وتخصصاً مميزاً (العربي أولاً) والأداة الأساسية.",about:"معرض الأعمال ضروري، وهي تشير إليه مع نتيجة قابلة للقياس.",exp:"حتى المصممات يستطعن ذكر أرقام: نسبة الترك، عدد المكونات، المقابلات.",certs:"شهادة Google لتجربة المستخدم بداية جيدة للمبتدئات.",skills:"تصميم الواجهات العربية مهارة نادرة، أبرزيها."}}},
+
+{id:"hr",color:"#9a3d6a",ini:["MZ","مز"],
+en:{label:"Human resources",name:"Mashael Al-Zahrani",headline:"HR Business Partner | Talent Acquisition and Employee Engagement | SHRM-CP | Saudization Programs",loc:"Riyadh, Saudi Arabia",conn:"500+ connections",otw:"",
+about:["HR professional with 6 years in recruitment, onboarding and employee engagement across healthcare and tech.","I have hired 250+ employees, designed onboarding programs that cut first-year turnover, and helped companies meet their Nitaqat (Saudization) targets."],
+featured:[["Article: 5 things new graduates should do before an interview","Published on LinkedIn, 8K views"]],
+exp:[["HR Business Partner","Sanad Health Group · Full-time","Jun 2022 – Present","Riyadh",["Partner with 4 department heads on hiring and performance plans for 600 staff","Reduced first-year turnover from 28% to 15% with a 90-day onboarding program","Raised Saudization rate from 34% to 52%, reaching a higher Nitaqat band"]],["Recruitment Specialist","Tamkeen Tech · Full-time","Feb 2020 – May 2022","Riyadh",["Hired 180+ employees for technical and sales roles","Cut average time-to-hire from 45 to 28 days"]]],
+edu:[["King Saud University","Bachelor of Business Administration, Human Resource Management","2015 – 2019",""]],
+certs:[["SHRM Certified Professional (SHRM-CP)","Society for Human Resource Management","Issued 2023"],["Recruiting Foundations","LinkedIn Learning","Issued 2021"]],
+courses:["Saudi Labor Law Essentials","People Analytics (online)","Conflict Resolution Skills"],
+skills:["Talent acquisition","Onboarding","Employee engagement","Saudi Labor Law","Nitaqat","Performance management","HRIS (SAP SuccessFactors)"],
+vol:[["Career Mentor","University career center","2021 – Present","Run mock interviews for final-year students"]],
+langs:["Arabic – Native","English – Full professional"],honors:[],
+rec:["Mashael changed how we welcome new people. Our turnover numbers prove it.","Chief HR Officer, Sanad Health"],
+notes:{top:"HR headlines should name the specialty and local expertise.",about:"Numbers like '250+ hires' give credibility in two lines.",exp:"Saudization (Nitaqat) results are highly valued by Saudi employers.",certs:"SHRM-CP or CIPD are the main international HR certificates.",skills:"Include Saudi Labor Law and the HR system she uses."}},
+ar:{label:"موارد بشرية",name:"مشاعل الزهراني",headline:"شريكة أعمال الموارد البشرية | استقطاب المواهب وتفاعل الموظفين | SHRM-CP | برامج التوطين",loc:"الرياض، السعودية",conn:"أكثر من 500 علاقة",otw:"",
+about:["أخصائية موارد بشرية بخبرة 6 سنوات في التوظيف والتهيئة وتفاعل الموظفين في القطاع الصحي والتقني.","وظّفت أكثر من 250 موظفاً، وصممت برامج تهيئة خفّضت دوران الموظفين في السنة الأولى، وساعدت الشركات في تحقيق مستهدفات نطاقات (التوطين)."],
+featured:[["مقال: 5 أشياء يجب أن يفعلها الخريجون قبل المقابلة","منشور على لينكدإن، 8 آلاف مشاهدة"]],
+exp:[["شريكة أعمال الموارد البشرية","مجموعة سند الصحية · دوام كامل","يونيو 2022 – حتى الآن","الرياض",["أعمل مع 4 رؤساء أقسام على خطط التوظيف والأداء لـ 600 موظف","خفّضت دوران السنة الأولى من 28% إلى 15% ببرنامج تهيئة مدته 90 يوماً","رفعت نسبة التوطين من 34% إلى 52% والانتقال إلى نطاق أعلى في نطاقات"]],["أخصائية توظيف","تمكين للتقنية · دوام كامل","فبراير 2020 – مايو 2022","الرياض",["وظّفت أكثر من 180 موظفاً في الوظائف التقنية والمبيعات","قلّصت متوسط مدة التوظيف من 45 إلى 28 يوماً"]]],
+edu:[["جامعة الملك سعود","بكالوريوس إدارة الأعمال، تخصص إدارة الموارد البشرية","2015 – 2019",""]],
+certs:[["أخصائي معتمد SHRM-CP","جمعية إدارة الموارد البشرية","صدرت 2023"],["أساسيات التوظيف","لينكدإن للتعلم","صدرت 2021"]],
+courses:["أساسيات نظام العمل السعودي","تحليلات الموارد البشرية (عن بُعد)","مهارات حل النزاعات"],
+skills:["استقطاب المواهب","التهيئة الوظيفية","تفاعل الموظفين","نظام العمل السعودي","نطاقات","إدارة الأداء","أنظمة الموارد البشرية (SAP SuccessFactors)"],
+vol:[["مرشدة مهنية","مركز التوجيه المهني بالجامعة","2021 – حتى الآن","أجري مقابلات تجريبية لطالبات السنة الأخيرة"]],
+langs:["العربية – اللغة الأم","الإنجليزية – مهنية كاملة"],honors:[],
+rec:["غيّرت مشاعل طريقة استقبالنا للموظفين الجدد، وأرقام الدوران الوظيفي تثبت ذلك.","الرئيس التنفيذي للموارد البشرية، مجموعة سند الصحية"],
+notes:{top:"عناوين الموارد البشرية تذكر التخصص والخبرة المحلية.",about:"أرقام مثل 250 موظفاً تعطي مصداقية في سطرين.",exp:"نتائج التوطين (نطاقات) يقدّرها أصحاب العمل في السعودية كثيراً.",certs:"SHRM-CP و CIPD أهم الشهادات الدولية في الموارد البشرية.",skills:"تضمين نظام العمل السعودي والنظام الإلكتروني المستخدم."}}},
+
+{id:"teach",color:"#3c6e8f",ini:["AG","أغ"],
+en:{label:"Teacher",name:"Asma Al-Ghamdi",headline:"English Language Teacher | CELTA | Grades 7–12 | Blended Learning and Classroom Technology",loc:"Abha, Asir Region",conn:"290 connections",otw:"",
+about:["English teacher with 7 years of experience in public and international schools.","I use project-based learning and digital tools to make English practical. My students' average exam scores rose 18% over two years."],
+featured:[["Lesson plan sample: Persuasive writing unit","Grade 10, with rubric"]],
+exp:[["English Teacher","Al-Rawabi International School · Full-time","Sep 2021 – Present","Abha",["Teach 5 classes (Grades 9–12) with 130 students","Raised average final exam scores by 18% in 2 years","Coordinate the school's annual English debate competition"]],["English Teacher","Public girls' intermediate school · Full-time","Sep 2018 – Jun 2021","Khamis Mushait",["Introduced weekly reading circles adopted by 3 other teachers"]]],
+edu:[["King Khalid University","Bachelor of Arts, English Language and Literature","2013 – 2017","GPA 4.2/5"]],
+certs:[["Professional Teaching License","Education and Training Evaluation Commission (ETEC)","Valid through 2028"],["CELTA","Cambridge English","Issued 2020"],["Google Certified Educator Level 1","Google for Education","Issued 2022"]],
+courses:["Teaching English Online (Cambridge)","Classroom Management Strategies (Coursera)"],
+skills:["Lesson planning","Classroom management","Project-based learning","Google Classroom","Assessment design","Public speaking coaching"],
+vol:[["Volunteer Tutor","Community literacy program","2019 – Present","Teach English to adult learners on weekends"]],
+langs:["Arabic – Native","English – Native or bilingual"],honors:["Distinguished Teacher Award, regional education directorate 2023"],
+rec:["Asma's classroom is full of energy and her students' results speak for themselves.","School Principal, Al-Rawabi International"],
+notes:{top:"Teachers should show subject, grade levels, and teaching certificate.",about:"Even education roles can show a measurable result (+18% scores).",exp:"Mention class size, student numbers, and activities you led.",certs:"The ETEC teaching license matters for Saudi schools; CELTA for international ones.",skills:"Include digital teaching tools, which schools now expect."}},
+ar:{label:"معلمة",name:"أسماء الغامدي",headline:"معلمة لغة إنجليزية | CELTA | الصفوف 7–12 | التعليم المدمج وتقنيات الفصل",loc:"أبها، منطقة عسير",conn:"290 علاقة",otw:"",
+about:["معلمة لغة إنجليزية بخبرة 7 سنوات في المدارس الحكومية والعالمية.","أستخدم التعلم بالمشاريع والأدوات الرقمية لأجعل الإنجليزية عملية. ارتفع متوسط درجات طالباتي في الاختبارات 18% خلال سنتين."],
+featured:[["نموذج تحضير درس: وحدة الكتابة الإقناعية","الصف العاشر، مع سلّم التقييم"]],
+exp:[["معلمة لغة إنجليزية","مدارس الروابي العالمية · دوام كامل","سبتمبر 2021 – حتى الآن","أبها",["أدرّس 5 فصول (الصفوف 9–12) فيها 130 طالبة","رفعت متوسط درجات الاختبارات النهائية 18% خلال سنتين","أنسّق مسابقة المناظرات الإنجليزية السنوية في المدرسة"]],["معلمة لغة إنجليزية","مدرسة متوسطة حكومية للبنات · دوام كامل","سبتمبر 2018 – يونيو 2021","خميس مشيط",["أطلقت حلقات قراءة أسبوعية تبنّتها 3 معلمات أخريات"]]],
+edu:[["جامعة الملك خالد","بكالوريوس اللغة الإنجليزية وآدابها","2013 – 2017","المعدل 4.2/5"]],
+certs:[["الرخصة المهنية للمعلمين","هيئة تقويم التعليم والتدريب","سارية حتى 2028"],["شهادة CELTA","كامبريدج","صدرت 2020"],["معلم معتمد من Google المستوى الأول","Google for Education","صدرت 2022"]],
+courses:["تدريس الإنجليزية عن بُعد (كامبريدج)","استراتيجيات إدارة الفصل (كورسيرا)"],
+skills:["تحضير الدروس","إدارة الفصل","التعلم بالمشاريع","Google Classroom","تصميم التقييم","تدريب الإلقاء"],
+vol:[["معلمة متطوعة","برنامج محو الأمية المجتمعي","2019 – حتى الآن","أعلّم الإنجليزية للكبار في عطلة نهاية الأسبوع"]],
+langs:["العربية – اللغة الأم","الإنجليزية – بطلاقة كاملة"],honors:["جائزة المعلمة المتميزة، إدارة التعليم بالمنطقة 2023"],
+rec:["فصل أسماء مليء بالحيوية، ونتائج طالباتها تتحدث عن نفسها.","مديرة المدرسة، مدارس الروابي العالمية"],
+notes:{top:"المعلمات يذكرن المادة والمراحل الدراسية وشهادة التدريس.",about:"حتى وظائف التعليم يمكن أن تُظهر نتيجة قابلة للقياس (+18%).",exp:"اذكري عدد الفصول والطالبات والأنشطة التي قدتِها.",certs:"الرخصة المهنية مهمة للمدارس السعودية، و CELTA للمدارس العالمية.",skills:"أضيفي أدوات التعليم الرقمي التي أصبحت المدارس تتوقعها."}}},
+
+{id:"web",color:"#c0582e",ini:["DM","دم"],
+en:{label:"Web designer",name:"Dana Al-Malki",headline:"Web Designer | Responsive Websites for Small Businesses | WordPress, Webflow, HTML/CSS | Arabic and English Sites",loc:"Jeddah, Saudi Arabia",conn:"480 connections",otw:"Open to: Web Designer, Front-End Designer",
+about:["Web designer who builds fast, good-looking websites that work perfectly on mobile, in Arabic and English.","I have designed and launched 25+ websites for restaurants, clinics, and online stores. I handle the full journey: layout, content, SEO basics, and handover training so the owner can update the site alone."],
+featured:[["Portfolio website","25+ live projects with before and after"],["Case study: Restaurant website redesign","Online orders up 60%"]],
+exp:[["Web Designer","Bayt Digital Agency · Full-time","Mar 2023 – Present","Jeddah · Hybrid",["Designed and launched 18 websites in WordPress and Webflow","Redesigned a restaurant site, increasing online orders by 60%","Cut average page load time from 5.1s to 1.8s by optimizing images and code","Built reusable Arabic RTL templates that save 2 days per project"]],["Freelance Web Designer","Self-employed · Freelance","2021 – 2023","Remote",["Delivered 9 websites for local businesses, all still online","Trained clients to update their own content"]]],
+edu:[["University of Jeddah","Bachelor of Science, Information Technology","2017 – 2021","GPA 4.4/5 · Graduation project: Booking website for a women's sports center"]],
+certs:[["Meta Front-End Developer Professional Certificate","Meta (Coursera)","Issued 2024"],["Webflow 101 Certification","Webflow University","Issued 2023"],["Google UX Design Professional Certificate","Google (Coursera)","Issued 2022"]],
+courses:["Responsive Web Design (freeCodeCamp)","SEO Fundamentals (Semrush Academy)","Web Accessibility (WCAG) Basics"],
+skills:["Web design","HTML","CSS","WordPress","Webflow","Figma","Responsive design","Arabic RTL layout","SEO basics","Page speed"],
+vol:[["Web Volunteer","Local charity association","2022 – Present","Built and maintain their donation website"]],
+langs:["Arabic – Native","English – Professional working"],honors:["Best Website, university IT exhibition 2021"],
+rec:["Dana delivered our site on time and taught us how to update it ourselves. Orders grew right away.","Owner, Jeddah restaurant client"],
+notes:{top:"Names the type of client, the tools, and the bilingual specialty, which is in demand locally.",about:"States the total number of websites and what is included in her service.",exp:"Freelance work is real experience. Results like orders and speed make design measurable.",certs:"Platform certificates (Meta, Webflow) prove skills when there is no design degree.",skills:"Tools plus technical skills like speed and SEO."}},
+ar:{label:"مصممة مواقع",name:"دانة المالكي",headline:"مصممة مواقع إلكترونية | مواقع متجاوبة للمشاريع الصغيرة | WordPress و Webflow و HTML/CSS | مواقع بالعربية والإنجليزية",loc:"جدة، السعودية",conn:"480 علاقة",otw:"متاحة لـ: مصممة مواقع، مصممة واجهات أمامية",
+about:["مصممة مواقع أبني مواقع سريعة وجميلة تعمل بشكل ممتاز على الجوال، بالعربية والإنجليزية.","صممت وأطلقت أكثر من 25 موقعاً لمطاعم وعيادات ومتاجر إلكترونية. أتولى الرحلة كاملة: التصميم، المحتوى، أساسيات تحسين محركات البحث، وتدريب صاحب المشروع ليحدّث موقعه بنفسه."],
+featured:[["موقع معرض الأعمال","أكثر من 25 مشروعاً منشوراً مع صور قبل وبعد"],["دراسة حالة: إعادة تصميم موقع مطعم","زيادة الطلبات الإلكترونية 60%"]],
+exp:[["مصممة مواقع","وكالة بيت الرقمية · دوام كامل","مارس 2023 – حتى الآن","جدة · هجين",["صممت وأطلقت 18 موقعاً على WordPress و Webflow","أعدت تصميم موقع مطعم فزادت الطلبات الإلكترونية 60%","خفّضت زمن تحميل الصفحة من 5.1 إلى 1.8 ثانية بتحسين الصور والكود","بنيت قوالب عربية جاهزة توفّر يومين في كل مشروع"]],["مصممة مواقع مستقلة","عمل حر","2021 – 2023","عن بُعد",["سلّمت 9 مواقع لمشاريع محلية وجميعها ما زالت تعمل","دربت العملاء على تحديث المحتوى بأنفسهم"]]],
+edu:[["جامعة جدة","بكالوريوس تقنية المعلومات","2017 – 2021","المعدل 4.4/5 · مشروع التخرج: موقع حجز لمركز رياضي نسائي"]],
+certs:[["شهادة Meta الاحترافية لتطوير الواجهات الأمامية","ميتا (كورسيرا)","صدرت 2024"],["شهادة Webflow 101","Webflow University","صدرت 2023"],["شهادة Google الاحترافية في تصميم تجربة المستخدم","جوجل (كورسيرا)","صدرت 2022"]],
+courses:["تصميم المواقع المتجاوبة (freeCodeCamp)","أساسيات تحسين محركات البحث (Semrush Academy)","أساسيات إمكانية الوصول للمواقع (WCAG)"],
+skills:["تصميم المواقع","HTML","CSS","WordPress","Webflow","Figma","التصميم المتجاوب","التصميم العربي من اليمين لليسار","أساسيات SEO","سرعة الصفحات"],
+vol:[["متطوعة مواقع","جمعية خيرية محلية","2022 – حتى الآن","بنيت موقع التبرعات وأتولى صيانته"]],
+langs:["العربية – اللغة الأم","الإنجليزية – مهنية"],honors:["أفضل موقع، معرض تقنية المعلومات الجامعي 2021"],
+rec:["سلّمت دانة موقعنا في الوقت المحدد وعلّمتنا كيف نحدّثه بأنفسنا، وزادت الطلبات مباشرة.","صاحب مطعم، عميل في جدة"],
+notes:{top:"تذكر نوع العملاء والأدوات والتخصص الثنائي اللغة المطلوب محلياً.",about:"تذكر عدد المواقع وما تشمله خدمتها.",exp:"العمل الحر خبرة حقيقية. نتائج مثل الطلبات والسرعة تجعل التصميم قابلاً للقياس.",certs:"شهادات المنصات (ميتا، Webflow) تثبت المهارة حتى بدون شهادة تصميم.",skills:"الأدوات مع مهارات تقنية مثل السرعة و SEO."}}},
+
+{id:"sysan",color:"#2d6f86",ini:["AQ","عق"],
+en:{label:"Systems analyst",name:"Abeer Al-Qurashi",headline:"Systems Analyst | Business Requirements, Process Mapping and ERP | SAP, SQL, UML | ECBA",loc:"Riyadh, Saudi Arabia",conn:"520 connections",otw:"Open to: Senior Systems Analyst, Business Analyst",
+about:["Systems analyst who connects business teams with developers. I turn what people need into clear requirements, process maps and test cases.","Over 4 years I have analyzed and helped deliver 12 system projects, including an ERP rollout used by 900 employees."],
+featured:[["Sample: Business requirements document","Template with use cases and acceptance criteria"]],
+exp:[["Systems Analyst","Al-Rimal Holding · Full-time","Jan 2023 – Present","Riyadh",["Gathered requirements from 6 departments for an SAP ERP rollout used by 900 employees","Mapped 40+ business processes (as-is and to-be) in BPMN","Wrote 300+ test cases and led user acceptance testing with zero critical defects at go-live","Reduced purchase approval time from 5 days to 1 by redesigning the workflow"]],["Junior Business Analyst","Tharwa IT Solutions · Full-time","Aug 2021 – Dec 2022","Riyadh",["Wrote user stories and requirements for 5 government portal projects","Built SQL reports for project managers"]]],
+edu:[["Imam Mohammad Ibn Saud Islamic University","Bachelor of Science, Information Systems","2017 – 2021","GPA 4.5/5 · Graduation project: Hospital appointment system analysis and design"]],
+certs:[["Entry Certificate in Business Analysis (ECBA)","International Institute of Business Analysis (IIBA)","Issued 2023"],["ITIL 4 Foundation","PeopleCert / AXELOS","Issued 2024"],["Professional Scrum Product Owner I (PSPO I)","Scrum.org","Issued 2024"]],
+courses:["SAP S/4HANA Overview","UML and Object-Oriented Design","SQL for Data Analysis","BPMN Process Modeling"],
+skills:["Requirements gathering","Business process mapping","BPMN","UML","SQL","SAP ERP","User acceptance testing","Agile / Scrum","Jira"],
+vol:[["Workshop Leader","University IS student club","2022 – Present","Teach students how to write requirements"]],
+langs:["Arabic – Native","English – Full professional"],honors:["Project Excellence Award, Al-Rimal ERP program 2024"],
+rec:["Abeer asks the questions everyone forgot to ask. Because of her, our ERP went live without surprises.","IT Director, Al-Rimal Holding"],
+notes:{top:"Systems analysts show the analysis skills, the systems they know (SAP) and a certificate.",about:"Explains the role simply: the bridge between business and developers.",exp:"Process improvements (5 days to 1) and testing results prove the value of analysis.",certs:"ECBA is a good first business analysis certificate. ITIL shows IT service knowledge.",skills:"Mix of methods (BPMN, UML), tools (Jira, SQL) and systems (SAP)."}},
+ar:{label:"محللة أنظمة",name:"عبير القرشي",headline:"محللة أنظمة | متطلبات الأعمال ورسم الإجراءات وأنظمة ERP | SAP و SQL و UML | ECBA",loc:"الرياض، السعودية",conn:"520 علاقة",otw:"متاحة لـ: محللة أنظمة أولى، محللة أعمال",
+about:["محللة أنظمة أربط بين فرق العمل والمطورين. أحوّل احتياجات الناس إلى متطلبات واضحة ومخططات إجراءات وحالات اختبار.","خلال 4 سنوات حللت وساهمت في تسليم 12 مشروع أنظمة، منها تطبيق نظام ERP يستخدمه 900 موظف."],
+featured:[["نموذج: وثيقة متطلبات الأعمال","قالب مع حالات الاستخدام ومعايير القبول"]],
+exp:[["محللة أنظمة","شركة الرمال القابضة · دوام كامل","يناير 2023 – حتى الآن","الرياض",["جمعت المتطلبات من 6 إدارات لتطبيق نظام SAP يستخدمه 900 موظف","رسمت أكثر من 40 إجراءً (الوضع الحالي والمستقبلي) بلغة BPMN","كتبت أكثر من 300 حالة اختبار وقدت اختبار قبول المستخدم دون أي خلل حرج عند الإطلاق","قلّصت مدة اعتماد المشتريات من 5 أيام إلى يوم واحد بإعادة تصميم مسار العمل"]],["محللة أعمال مبتدئة","ثروة لحلول تقنية المعلومات · دوام كامل","أغسطس 2021 – ديسمبر 2022","الرياض",["كتبت قصص المستخدمين والمتطلبات لـ 5 بوابات حكومية","بنيت تقارير SQL لمديري المشاريع"]]],
+edu:[["جامعة الإمام محمد بن سعود الإسلامية","بكالوريوس نظم المعلومات","2017 – 2021","المعدل 4.5/5 · مشروع التخرج: تحليل وتصميم نظام مواعيد مستشفى"]],
+certs:[["الشهادة التمهيدية في تحليل الأعمال (ECBA)","المعهد الدولي لتحليل الأعمال (IIBA)","صدرت 2023"],["ITIL 4 Foundation","PeopleCert / AXELOS","صدرت 2024"],["Professional Scrum Product Owner I","Scrum.org","صدرت 2024"]],
+courses:["نظرة عامة على SAP S/4HANA","UML والتصميم الكائني","SQL لتحليل البيانات","نمذجة الإجراءات بلغة BPMN"],
+skills:["جمع المتطلبات","رسم إجراءات العمل","BPMN","UML","SQL","نظام SAP","اختبار قبول المستخدم","Agile / Scrum","Jira"],
+vol:[["مقدمة ورش","نادي نظم المعلومات الطلابي","2022 – حتى الآن","أعلّم الطالبات كيفية كتابة المتطلبات"]],
+langs:["العربية – اللغة الأم","الإنجليزية – مهنية كاملة"],honors:["جائزة التميز في المشاريع، برنامج ERP في الرمال 2024"],
+rec:["عبير تسأل الأسئلة التي نسيها الجميع. بفضلها أُطلق نظامنا دون مفاجآت.","مدير تقنية المعلومات، شركة الرمال القابضة"],
+notes:{top:"محللة الأنظمة تُظهر مهارات التحليل والأنظمة التي تعرفها (SAP) وشهادة.",about:"تشرح الدور ببساطة: الجسر بين فرق العمل والمطورين.",exp:"تحسين الإجراءات (من 5 أيام إلى يوم) ونتائج الاختبار تثبت قيمة التحليل.",certs:"ECBA أول شهادة جيدة في تحليل الأعمال، و ITIL تُظهر معرفة بخدمات التقنية.",skills:"مزيج من المنهجيات (BPMN, UML) والأدوات (Jira, SQL) والأنظمة (SAP)."}}},
+
+{id:"cyber",color:"#3a4a5e",ini:["WH","وه"],
+en:{label:"Cybersecurity",name:"Wejdan Al-Hajri",headline:"Cybersecurity Analyst | SOC, Threat Detection and Incident Response | Security+, CySA+ | NCA ECC Compliance",loc:"Riyadh, Saudi Arabia",conn:"500+ connections",otw:"Open to: SOC Analyst Tier 2, Incident Responder",
+about:["Cybersecurity analyst working in a Security Operations Center (SOC), monitoring and responding to threats 24/7.","I investigate alerts in SIEM tools, contain incidents, and help my organization meet the National Cybersecurity Authority's Essential Cybersecurity Controls (ECC).","I practice on legal training platforms like TryHackMe, where I am in the top 2%."],
+featured:[["Write-up: Investigating a phishing campaign (lab)","Step-by-step analysis on a training platform"],["Talk: Phishing awareness for employees","Delivered to 400 staff"]],
+exp:[["SOC Analyst","Aman Security Services · Full-time","Feb 2024 – Present","Riyadh · On-site",["Monitor and triage 150+ security alerts per shift using Splunk and Microsoft Sentinel","Cut false positives by 40% by tuning detection rules","Led response to 12 incidents, from detection to recovery report","Ran phishing simulations that lowered employee click rate from 18% to 4%"]],["Cybersecurity Intern","National IT Company · Internship","Jun 2023 – Aug 2023","Riyadh",["Supported vulnerability scans with Nessus and documented findings","Helped prepare evidence for an NCA ECC compliance review"]]],
+edu:[["Princess Nourah bint Abdulrahman University","Bachelor of Science, Cybersecurity","2019 – 2023","GPA 4.6/5 · Graduation project: Phishing detection using machine learning"]],
+certs:[["CompTIA Security+","CompTIA","Issued 2023"],["CompTIA Cybersecurity Analyst (CySA+)","CompTIA","Issued 2025"],["Splunk Core Certified User","Splunk","Issued 2024"],["Certified in Cybersecurity (CC)","ISC2","Issued 2023"]],
+courses:["Essential Cybersecurity Controls (ECC) awareness","SOC Level 1 path (TryHackMe)","Digital Forensics Fundamentals","Network+ Prep Course"],
+skills:["SOC operations","SIEM (Splunk, Sentinel)","Incident response","Threat hunting","Vulnerability assessment","Network security","Phishing analysis","NCA ECC","Linux","Python scripting"],
+vol:[["Mentor","Women in Cybersecurity student circle","2024 – Present","Guide students preparing for Security+"],["Participant","National CTF competitions","2022 – 2024","Team finished in top 10"]],
+langs:["Arabic – Native","English – Full professional"],honors:["Top 10, national capture-the-flag competition 2023"],
+rec:["Wejdan stays calm and methodical during incidents. Her rule tuning made the whole SOC more effective.","SOC Manager, Aman Security Services"],
+notes:{top:"Cybersecurity headlines name the area (SOC), key certificates and local compliance knowledge (NCA).",about:"Mentions legal practice platforms, which shows passion and honest hands-on skill.",exp:"Numbers on alerts, incidents and phishing click rates show real impact.",certs:"Security+ is the most common first certificate. CySA+ shows growth to analyst level.",skills:"Tools by name (Splunk, Sentinel) because recruiters search for them."}},
+ar:{label:"أمن سيبراني",name:"وجدان الهاجري",headline:"محللة أمن سيبراني | مركز العمليات الأمنية ورصد التهديدات والاستجابة للحوادث | Security+ و CySA+ | الضوابط الأساسية للأمن السيبراني",loc:"الرياض، السعودية",conn:"أكثر من 500 علاقة",otw:"متاحة لـ: محللة مركز عمليات أمنية مستوى 2، مستجيبة للحوادث",
+about:["محللة أمن سيبراني في مركز العمليات الأمنية (SOC)، أراقب التهديدات وأستجيب لها على مدار الساعة.","أحقق في التنبيهات باستخدام أنظمة SIEM، وأحتوي الحوادث، وأساعد جهتي على الالتزام بالضوابط الأساسية للأمن السيبراني (ECC) الصادرة عن الهيئة الوطنية للأمن السيبراني.","أتدرب على منصات تدريب نظامية مثل TryHackMe، وأنا ضمن أفضل 2% فيها."],
+featured:[["شرح: تحقيق في حملة تصيّد (بيئة تدريبية)","تحليل خطوة بخطوة على منصة تدريب"],["محاضرة: التوعية بالتصيّد للموظفين","قُدّمت لـ 400 موظف"]],
+exp:[["محللة مركز عمليات أمنية","أمان للخدمات الأمنية · دوام كامل","فبراير 2024 – حتى الآن","الرياض · في المقر",["أراقب وأفرز أكثر من 150 تنبيهاً أمنياً في كل مناوبة باستخدام Splunk و Microsoft Sentinel","خفّضت الإنذارات الكاذبة 40% بضبط قواعد الرصد","قدت الاستجابة لـ 12 حادثة من الاكتشاف حتى تقرير التعافي","نفذت محاكاة تصيّد خفّضت نسبة نقر الموظفين من 18% إلى 4%"]],["متدربة أمن سيبراني","الشركة الوطنية لتقنية المعلومات · تدريب","يونيو 2023 – أغسطس 2023","الرياض",["ساعدت في فحص الثغرات باستخدام Nessus وتوثيق النتائج","ساهمت في تجهيز أدلة مراجعة الالتزام بالضوابط الأساسية"]]],
+edu:[["جامعة الأميرة نورة بنت عبدالرحمن","بكالوريوس الأمن السيبراني","2019 – 2023","المعدل 4.6/5 · مشروع التخرج: كشف رسائل التصيّد بتعلم الآلة"]],
+certs:[["CompTIA Security+","CompTIA","صدرت 2023"],["محللة أمن سيبراني CySA+","CompTIA","صدرت 2025"],["Splunk Core Certified User","Splunk","صدرت 2024"],["Certified in Cybersecurity (CC)","ISC2","صدرت 2023"]],
+courses:["التوعية بالضوابط الأساسية للأمن السيبراني (ECC)","مسار SOC المستوى الأول (TryHackMe)","أساسيات التحقيق الجنائي الرقمي","دورة التحضير لـ Network+"],
+skills:["عمليات مركز الأمن","أنظمة SIEM (Splunk, Sentinel)","الاستجابة للحوادث","البحث عن التهديدات","تقييم الثغرات","أمن الشبكات","تحليل التصيّد","الضوابط الأساسية ECC","Linux","برمجة Python"],
+vol:[["مرشدة","حلقة طالبات الأمن السيبراني","2024 – حتى الآن","أوجّه الطالبات المستعدات لاختبار Security+"],["مشاركة","مسابقات التقاط العلم (CTF) الوطنية","2022 – 2024","حقق الفريق مركزاً ضمن أفضل 10"]],
+langs:["العربية – اللغة الأم","الإنجليزية – مهنية كاملة"],honors:["ضمن أفضل 10، مسابقة التقاط العلم الوطنية 2023"],
+rec:["وجدان هادئة ومنظمة أثناء الحوادث، وضبطها للقواعد جعل المركز كله أكثر فعالية.","مدير مركز العمليات الأمنية، أمان للخدمات الأمنية"],
+notes:{top:"عناوين الأمن السيبراني تذكر المجال (SOC) وأهم الشهادات والمعرفة بالأنظمة المحلية (الهيئة الوطنية للأمن السيبراني).",about:"تذكر منصات التدريب النظامية، وهذا يُظهر الشغف والمهارة العملية بطريقة صحيحة.",exp:"أرقام التنبيهات والحوادث ونسبة النقر على التصيّد تُظهر أثراً حقيقياً.",certs:"Security+ أشهر شهادة أولى في المجال، و CySA+ تُظهر التطور لمستوى المحللة.",skills:"اذكري الأدوات بأسمائها (Splunk, Sentinel) لأن مسؤولي التوظيف يبحثون بها."}}},
+
+{id:"grad",color:"#4d6b2a",ini:["JS","جس"],
+en:{label:"Fresh graduate",name:"Jood Al-Subaie",headline:"Business Information Systems Graduate | Data Analysis (SQL, Excel, Tableau) | Seeking Entry-Level Analyst Roles",loc:"Riyadh, Saudi Arabia",conn:"210 connections",otw:"Open to: Data Analyst, Business Analyst, Graduate programs",
+about:["Recent graduate in Business Information Systems who enjoys finding stories in data.","During my internship I built a sales dashboard that the team still uses. I completed the Google Data Analytics Certificate and practice weekly on real datasets.","Looking for a graduate or entry-level analyst role where I can learn fast and contribute."],
+featured:[["Project: Riyadh café market analysis","Tableau dashboard and short write-up"],["Graduation project report","Inventory forecasting system"]],
+exp:[["Data Analyst Intern","Nama Telecom · Internship","Jun 2025 – Aug 2025","Riyadh",["Built a Tableau dashboard tracking weekly sales for 40 branches","Cleaned and merged 3 years of sales data (120K rows) in SQL","Presented findings to the regional sales manager"]],["Student Assistant","University IT Help Desk · Part-time","2023 – 2024","Riyadh",["Resolved 15+ student tech issues per week"]]],
+edu:[["Princess Nourah bint Abdulrahman University","Bachelor's degree, Business Information Systems","2021 – 2025","GPA 4.7/5 · First honors · Graduation project: Inventory forecasting system"]],
+certs:[["Google Data Analytics Professional Certificate","Google (Coursera)","Issued 2025"],["SQL for Data Science","UC Davis (Coursera)","Issued 2024"],["IELTS Academic, Band 7.0","British Council","Issued 2024"]],
+courses:["Tableau Fundamentals","Python for Everybody (University of Michigan)","Business Analytics (SDAIA Academy)"],
+skills:["SQL","Excel","Tableau","Python (basic)","Data cleaning","Presentation","Problem solving"],
+vol:[["Organizer","University Tech Week","2024","Led a team of 12 volunteers, 900 attendees"],["Volunteer","Riyadh Season events","2023","Guest services"]],
+langs:["Arabic – Native","English – Professional working (IELTS 7.0)"],honors:["Dean's List, all semesters","2nd place, university data challenge 2024"],
+rec:["Jood learned our data in two weeks and gave us a dashboard we use every Monday.","Regional Sales Manager, Nama Telecom"],
+notes:{top:"Students: say what you studied, your skills, and the job you want.",about:"No full-time job yet, so she leads with the internship result and certificates.",exp:"Internships and part-time jobs are real experience. Treat them seriously.",certs:"Free and low-cost certificates fill the gap when experience is short. IELTS proves English level.",skills:"Be honest about level, for example 'Python (basic)'."}},
+ar:{label:"خريجة جديدة",name:"جود السبيعي",headline:"خريجة نظم معلومات إدارية | تحليل البيانات (SQL, Excel, Tableau) | أبحث عن وظيفة محللة بيانات للمبتدئين",loc:"الرياض، السعودية",conn:"210 علاقات",otw:"متاحة لـ: محللة بيانات، محللة أعمال، برامج الخريجين",
+about:["خريجة حديثة في نظم المعلومات الإدارية، أستمتع باكتشاف القصص داخل البيانات.","خلال التدريب بنيت لوحة مبيعات ما زال الفريق يستخدمها. أكملت شهادة Google لتحليل البيانات، وأتدرب أسبوعياً على بيانات حقيقية.","أبحث عن برنامج خريجين أو وظيفة محللة للمبتدئين أتعلم فيها بسرعة وأساهم."],
+featured:[["مشروع: تحليل سوق المقاهي في الرياض","لوحة Tableau وملخص مكتوب"],["تقرير مشروع التخرج","نظام للتنبؤ بالمخزون"]],
+exp:[["متدربة تحليل بيانات","نماء للاتصالات · تدريب","يونيو 2025 – أغسطس 2025","الرياض",["بنيت لوحة Tableau لمتابعة المبيعات الأسبوعية لـ 40 فرعاً","نظّفت ودمجت بيانات مبيعات 3 سنوات (120 ألف صف) باستخدام SQL","عرضت النتائج على مدير المبيعات الإقليمي"]],["مساعدة طلابية","مكتب الدعم التقني بالجامعة · دوام جزئي","2023 – 2024","الرياض",["حللت أكثر من 15 مشكلة تقنية للطالبات أسبوعياً"]]],
+edu:[["جامعة الأميرة نورة بنت عبدالرحمن","بكالوريوس نظم المعلومات الإدارية","2021 – 2025","المعدل 4.7/5 · مرتبة الشرف الأولى · مشروع التخرج: نظام للتنبؤ بالمخزون"]],
+certs:[["شهادة Google الاحترافية لتحليل البيانات","جوجل (كورسيرا)","صدرت 2025"],["SQL لعلوم البيانات","جامعة كاليفورنيا ديفيس (كورسيرا)","صدرت 2024"],["آيلتس أكاديمي، درجة 7.0","المجلس الثقافي البريطاني","صدرت 2024"]],
+courses:["أساسيات Tableau","Python للجميع (جامعة ميشيغان)","تحليلات الأعمال (أكاديمية سدايا)"],
+skills:["SQL","Excel","Tableau","Python (مبتدئة)","تنظيف البيانات","العرض والإلقاء","حل المشكلات"],
+vol:[["منظمة","الأسبوع التقني بالجامعة","2024","قدت فريقاً من 12 متطوعة، 900 زائرة"],["متطوعة","فعاليات موسم الرياض","2023","خدمة الضيوف"]],
+langs:["العربية – اللغة الأم","الإنجليزية – مهنية (آيلتس 7.0)"],honors:["قائمة العميدة، جميع الفصول","المركز الثاني، تحدي البيانات الجامعي 2024"],
+rec:["تعلّمت جود بياناتنا في أسبوعين وقدّمت لنا لوحة نستخدمها كل يوم اثنين.","مدير المبيعات الإقليمي، نماء للاتصالات"],
+notes:{top:"للطالبات: اذكري ماذا درستِ ومهاراتك والوظيفة التي تريدينها.",about:"لا توجد وظيفة بدوام كامل بعد، لذلك تبدأ بنتيجة التدريب والشهادات.",exp:"التدريب والعمل الجزئي خبرة حقيقية، تعاملي معها بجدية.",certs:"الشهادات المجانية ومنخفضة التكلفة تعوّض قلة الخبرة، والآيلتس يثبت مستوى الإنجليزية.",skills:"كوني صادقة في المستوى، مثل Python (مبتدئة)."}}}
+];
+
+let lang="en",view="guide",cur=P[0];
+try{lang=localStorage.getItem("lang")||"en"}catch(_){}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const $=id=>document.getElementById(id);
+
+function row(inner,note){const u=UI[lang];return `<div class="row${note?"":" nonote"}"><section class="card">${inner}</section>${note?`<aside class="note"><b>${u.why}</b>${esc(note)}</aside>`:""}</div>`}
+const ico=n=>`<div class="logo" aria-hidden="true">${n}</div>`;
+
+function renderProfile(){
+  const u=UI[lang],S=u.s,p=cur[lang],n=p.notes,ini=cur.ini[lang==="ar"?1:0];
+  const q=lang==="ar"?["«","»"]:["“","”"];
+  let h=`<div class="row"><section class="card top"><div class="banner" style="background:${cur.color}"></div><div class="in">
+    <div class="avatar" style="background:${cur.color}">${ini}</div>
+    <p class="name">${esc(p.name)}</p><p class="headline">${esc(p.headline)}</p>
+    <p class="meta">${esc(p.loc)} · ${esc(p.conn)}</p>${p.otw?`<span class="otw">${esc(p.otw)}</span>`:""}</div></section>
+    <aside class="note"><b>${u.why}</b>${esc(n.top)}</aside></div>`;
+  h+=row(`<h2>${S.about}</h2>${p.about.map(t=>`<p style="margin:0 0 8px">${esc(t)}</p>`).join("")}`,n.about);
+  h+=row(`<h2>${S.featured}</h2><div class="feat">${p.featured.map(f=>`<div class="fbox"><p style="font-weight:600">${esc(f[0])}</p><p class="sub">${esc(f[1])}</p></div>`).join("")}</div>`,"");
+  h+=row(`<h2>${S.exp}</h2>${p.exp.map(e=>`<div class="item">${ico("&#9638;")}<div style="min-width:0"><h3>${esc(e[0])}</h3><p>${esc(e[1])}</p><p class="sub">${esc(e[2])}</p><p class="sub">${esc(e[3])}</p><ul class="b">${e[4].map(b=>`<li>${esc(b)}</li>`).join("")}</ul></div></div>`).join("")}`,n.exp);
+  h+=row(`<h2>${S.edu}</h2>${p.edu.map(e=>`<div class="item">${ico("&#9673;")}<div style="min-width:0"><h3>${esc(e[0])}</h3><p>${esc(e[1])}</p><p class="sub">${esc(e[2])}</p>${e[3]?`<p class="sub">${esc(e[3])}</p>`:""}</div></div>`).join("")}`,"");
+  h+=row(`<h2>${S.certs}</h2>${p.certs.map(c=>`<div class="item">${ico("&#10003;")}<div style="min-width:0"><h3>${esc(c[0])}</h3><p>${esc(c[1])}</p><p class="sub">${esc(c[2])}</p></div></div>`).join("")}`,n.certs);
+  h+=row(`<h2>${S.courses}</h2><ul class="b" style="margin:0">${p.courses.map(c=>`<li>${esc(c)}</li>`).join("")}</ul>`,"");
+  h+=row(`<h2>${S.skills}</h2><div class="tags">${p.skills.map(s=>`<span class="tag">${esc(s)}</span>`).join("")}</div>`,n.skills);
+  h+=row(`<h2>${S.vol}</h2>${p.vol.map(v=>`<div class="item">${ico("&#9825;")}<div style="min-width:0"><h3>${esc(v[0])}</h3><p>${esc(v[1])}</p><p class="sub">${esc(v[2])}</p><p class="sub">${esc(v[3])}</p></div></div>`).join("")}`,"");
+  let x=`<h2>${S.langs}</h2><div class="tags" style="margin-bottom:${p.honors.length?"16px":"0"}">${p.langs.map(l=>`<span class="tag">${esc(l)}</span>`).join("")}</div>`;
+  if(p.honors.length)x+=`<h2>${S.honors}</h2><ul class="b" style="margin:0">${p.honors.map(y=>`<li>${esc(y)}</li>`).join("")}</ul>`;
+  h+=row(x,"");
+  h+=row(`<h2>${S.rec}</h2><p class="rec">${q[0]}${esc(p.rec[0])}${q[1]}</p><p class="sub" style="margin-top:6px">${esc(p.rec[1])}</p>`,"");
+  $("profile").innerHTML=h;
+  $("count").textContent=u.showing(P.indexOf(cur)+1,P.length,p.label);
+  document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.id===cur.id));
+}
+
+function renderGuide(){
+  const u=UI[lang],secs=G[lang];
+  let h=`<section class="card"><h2>${u.contents}</h2><nav class="toc">${secs.map(s=>`<a href="#g-${s.id}">${esc(s.t)}</a>`).join("")}</nav></section>`;
+  secs.forEach(s=>{
+    let b=`<h2 id="g-${s.id}">${esc(s.t)}</h2><div class="gsec">`;
+    if(s.p)b+=s.p.map(t=>`<p>${esc(t)}</p>`).join("");
+    if(s.list)b+=`<ul class="b" style="margin:0">${s.list.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>`;
+    if(s.p2)b+=`<p style="margin-top:10px">${esc(s.p2)}</p>`;
+    if(s.warn)b+=`<div class="box warn">${esc(s.warn)}</div>`;
+    if(s.box)b+=`<div class="box">${esc(s.box)}</div>`;
+    if(s.steps)b+=s.steps.map((st,i)=>`<div class="step"><div class="num">${i+1}</div><div style="min-width:0"><h3>${esc(st[0])}</h3><p>${esc(st[1])}</p></div></div>`).join("");
+    if(s.defs)b+=s.defs.map(d=>`<div class="item"><div style="min-width:0"><h3>${esc(d[0])}</h3><p class="sub" style="font-size:14px">${esc(d[1])}</p></div></div>`).join("");
+    if(s.weeks)b+=`<div class="weeks">${s.weeks.map(w=>`<div class="wk"><b>${esc(w[0])}</b>${esc(w[1])}</div>`).join("")}</div>`;
+    b+=`</div>`;
+    if(s.id==="build")b+=`<button class="go" type="button" data-go="1" style="margin-top:14px">${u.goEx}</button>`;
+    h+=`<section class="card">${b}</section>`;
+  });
+  h+=`<button class="go" type="button" data-go="1">${u.goEx}</button>`;
+  $("guideView").innerHTML=h;
+}
+
+function renderAll(){
+  const u=UI[lang];
+  document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";
+  $("vGuide").textContent=u.guide;$("vEx").textContent=u.ex;$("langBtn").textContent=u.lang;
+  $("vGuide").setAttribute("aria-pressed",view==="guide");$("vEx").setAttribute("aria-pressed",view==="examples");
+  $("h1").textContent=view==="guide"?u.h1g:u.h1e;$("lede").textContent=view==="guide"?u.ledeg:u.ledee;
+  $("guideView").hidden=view!=="guide";$("exView").hidden=view!=="examples";$("chips").hidden=view!=="examples";
+  $("toggleNotes").textContent=document.body.classList.contains("hide-notes")?u.show:u.hide;
+  $("chips").innerHTML=P.map(p=>`<button class="chip" type="button" data-id="${p.id}" aria-pressed="false">${esc(p[lang].label)}</button>`).join("");
+  $("ckH").textContent=u.ckH;$("ckL").innerHTML=u.ck.map(c=>`<li>${esc(c)}</li>`).join("");
+  renderGuide();renderProfile();
+}
+function setHash(h){try{history.replaceState(null,"","#"+h)}catch(_){}}
+function showExamples(){view="examples";setHash(cur.id);renderAll();window.scrollTo(0,0)}
+
+$("views").addEventListener("click",e=>{const b=e.target.closest(".vbtn");if(!b)return;view=b.dataset.v;setHash(view==="guide"?"guide":cur.id);renderAll();window.scrollTo(0,0)});
+$("langBtn").addEventListener("click",()=>{lang=lang==="en"?"ar":"en";try{localStorage.setItem("lang",lang)}catch(_){}renderAll()});
+$("chips").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;cur=P.find(x=>x.id===b.dataset.id);setHash(cur.id);renderProfile();
+  const pr=$("profile"),ch=$("chips");pr.style.scrollMarginTop=(ch.offsetHeight+16)+"px";
+  const reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+  pr.scrollIntoView({behavior:reduce?"auto":"smooth",block:"start"});
+  const act=ch.querySelector('.chip[aria-pressed="true"]');if(act&&ch.scrollWidth>ch.clientWidth)act.scrollIntoView({block:"nearest",inline:"center"});});
+$("guideView").addEventListener("click",e=>{if(e.target.closest("[data-go]"))showExamples()});
+$("toggleNotes").addEventListener("click",()=>{document.body.classList.toggle("hide-notes");renderAll()});
+
+const h0=location.hash.slice(1),hp=P.find(p=>p.id===h0);
+if(hp){cur=hp;view="examples"}
+renderAll();
+</script>
+
+</body>
+</html>
